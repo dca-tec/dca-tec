@@ -1,0 +1,180 @@
+{
+  "entities": {
+    "Lead": {
+      "title": "Lead",
+      "description": "Captura de contatos do site e landing pages",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string", "description": "Nome completo do lead" },
+        "email": { "type": "string", "format": "email", "description": "E-mail corporativo" },
+        "phone": { "type": "string", "description": "Telefone ou WhatsApp" },
+        "company": { "type": "string", "description": "Nome da empresa ou CNPJ" },
+        "message": { "type": "string", "description": "Mensagem ou detalhes do projeto" },
+        "source": { "type": "string", "description": "Origem do lead (home, tributaria, etc)" },
+        "createdAt": { "type": "string", "format": "date-time", "description": "Data de criação" }
+      },
+      "required": ["name", "email", "source", "createdAt"]
+    },
+    "ProposalAcceptance": {
+      "title": "ProposalAcceptance",
+      "description": "Aceite de propostas comerciais e gestão de conta do cliente",
+      "type": "object",
+      "properties": {
+        "proposalId": { "type": "string", "description": "ID do nicho da proposta" },
+        "clientName": { "type": "string", "description": "Nome do cliente que aceitou" },
+        "clientEmail": { "type": "string", "format": "email", "description": "E-mail do cliente" },
+        "proposalValue": { "type": "string", "description": "Valor acordado" },
+        "niche": { "type": "string", "description": "Nicho da proposta" },
+        "acceptedAt": { "type": "string", "format": "date-time", "description": "Data e hora do aceite" },
+        "status": { "type": "string", "enum": ["pending", "contacted", "signed"], "description": "Status do processo" },
+        "contractSigned": { "type": "boolean", "description": "Se o contrato foi assinado" },
+        "contractSignedAt": { "type": "string", "format": "date-time", "description": "Data da assinatura do contrato" },
+        "cancellationRequested": { "type": "boolean", "description": "Solicitação de cancelamento LGPD" },
+        "cancellationReason": { "type": "string", "description": "Motivo do cancelamento" },
+        "limits": {
+          "type": "object",
+          "properties": {
+            "editais": { "type": "number", "description": "Limite de editais" },
+            "pregoes": { "type": "number", "description": "Limite de pregões" },
+            "procedimentos": { "type": "number", "description": "Limite de procedimentos" }
+          }
+        },
+        "usage": {
+          "type": "object",
+          "properties": {
+            "editais": { "type": "number", "description": "Editais usados" },
+            "pregoes": { "type": "number", "description": "Pregões usados" },
+            "procedimentos": { "type": "number", "description": "Procedimentos usados" }
+          }
+        }
+      },
+      "required": ["proposalId", "acceptedAt", "status"]
+    },
+    "ClientDocument": {
+      "title": "ClientDocument",
+      "description": "Documentos enviados pelo cliente",
+      "type": "object",
+      "properties": {
+        "clientId": { "type": "string", "description": "ID do aceite/cliente" },
+        "name": { "type": "string", "description": "Nome do documento" },
+        "type": { "type": "string", "description": "Tipo do documento (A1, Contrato Social, etc)" },
+        "url": { "type": "string", "description": "URL do arquivo (ou base64/placeholder)" },
+        "uploadedAt": { "type": "string", "format": "date-time", "description": "Data de envio" }
+      },
+      "required": ["clientId", "name", "type", "uploadedAt"]
+    },
+    "Bidding": {
+      "title": "Bidding",
+      "description": "Registro de editais e pregões por cliente",
+      "type": "object",
+      "properties": {
+        "clientId": { "type": "string", "description": "ID do cliente" },
+        "title": { "type": "string", "description": "Título do edital" },
+        "number": { "type": "string", "description": "Número do edital" },
+        "organ": { "type": "string", "description": "Órgão público" },
+        "status": { "type": "string", "enum": ["analise", "participando", "vencido", "perdido", "impugnado", "homologado"], "description": "Status da licitação" },
+        "department": { "type": "string", "description": "Departamento vinculado" },
+        "notaEmpenhoUrl": { "type": "string", "description": "URL da Nota de Empenho" },
+        "notaFiscalUrl": { "type": "string", "description": "URL da Nota Fiscal" },
+        "pagamentoConfirmado": { "type": "boolean", "description": "Status do pagamento" },
+        "prazo": { "type": "string", "format": "date-time", "description": "Prazo de entrega ou validade" },
+        "actions": { "type": "array", "items": { "type": "string" }, "description": "Histórico de ações" },
+        "createdAt": { "type": "string", "format": "date-time", "description": "Data de registro" }
+      },
+      "required": ["clientId", "title", "status", "createdAt"]
+    },
+    "Acquisition": {
+      "title": "Acquisition",
+      "description": "Propostas de aquisição (M&A) para empresas alvo",
+      "type": "object",
+      "properties": {
+        "companyName": { "type": "string", "description": "Nome da empresa alvo" },
+        "ownerName": { "type": "string", "description": "Nome do proprietário" },
+        "ownerEmail": { "type": "string", "format": "email", "description": "E-mail do proprietário" },
+        "accessCode": { "type": "string", "description": "Código de acesso exclusivo" },
+        "valuation": { "type": "string", "description": "Valuation proposto" },
+        "terms": { "type": "string", "description": "Termos e condições principais" },
+        "status": { "type": "string", "enum": ["sent", "viewed", "accepted", "declined"], "description": "Status da proposta" },
+        "acceptedAt": { "type": "string", "format": "date-time", "description": "Data do aceite" },
+        "ipAddress": { "type": "string", "description": "IP de quem aceitou" },
+        "userAgent": { "type": "string", "description": "Navegador de quem aceitou" },
+        "createdAt": { "type": "string", "format": "date-time", "description": "Data de criação da proposta" }
+      },
+      "required": ["companyName", "accessCode", "status", "createdAt"]
+    },
+    "User": {
+      "title": "User",
+      "description": "Perfil do usuário",
+      "type": "object",
+      "properties": {
+        "role": { "type": "string", "enum": ["admin", "client"], "description": "Papel do usuário" },
+        "email": { "type": "string", "format": "email" },
+        "name": { "type": "string" }
+      },
+      "required": ["role", "email"]
+    },
+    "Message": {
+      "title": "Message",
+      "description": "Mensagem de chat",
+      "type": "object",
+      "properties": {
+        "clientId": { "type": "string" },
+        "senderId": { "type": "string" },
+        "senderName": { "type": "string" },
+        "text": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["clientId", "senderId", "text", "createdAt"]
+    },
+    "ComplianceLog": {
+      "title": "ComplianceLog",
+      "description": "Log de auditoria e conformidade",
+      "type": "object",
+      "properties": {
+        "docId": { "type": "string" },
+        "docName": { "type": "string" },
+        "clientId": { "type": "string" },
+        "clientName": { "type": "string" },
+        "action": { "type": "string" },
+        "performedBy": { "type": "string" },
+        "timestamp": { "type": "string", "format": "date-time" },
+        "status": { "type": "string" }
+      },
+      "required": ["clientId", "action", "timestamp"]
+    }
+  },
+  "firestore": {
+    "/leads/{leadId}": {
+      "schema": "Lead",
+      "description": "Coleção de leads capturados"
+    },
+    "/acceptances/{acceptanceId}": {
+      "schema": "ProposalAcceptance",
+      "description": "Coleção de aceites e contas de clientes"
+    },
+    "/documents/{docId}": {
+      "schema": "ClientDocument",
+      "description": "Documentos dos clientes"
+    },
+    "/biddings/{biddingId}": {
+      "schema": "Bidding",
+      "description": "Gestão de editais e pregões"
+    },
+    "/acquisitions/{acquisitionId}": {
+      "schema": "Acquisition",
+      "description": "Propostas de aquisição de empresas"
+    },
+    "/users/{userId}": {
+      "schema": "User",
+      "description": "Perfis de usuário"
+    },
+    "/messages/{messageId}": {
+      "schema": "Message",
+      "description": "Mensagens de suporte/transacionais"
+    },
+    "/compliance_logs/{logId}": {
+      "schema": "ComplianceLog",
+      "description": "Logs de conformidade e uso de documentos"
+    }
+  }
+}

@@ -1,0 +1,165 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // ===============================================================
+    // Global Deny
+    // ===============================================================
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // ===============================================================
+    // Primitives & Helpers
+    // ===============================================================
+    
+    function isSignedIn() { return request.auth != null; }
+    function isVerified() { return isSignedIn() && request.auth.token.email_verified == true; }
+    
+    function isAdmin() { 
+      return isVerified() && (
+        request.auth.token.email.matches("(?i)^dca\\.tec\\.br@gmail\\.com$") ||
+        (exists(/databases/$(database)/documents/users/$(request.auth.uid)) && 
+         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin')
+      ); 
+    }
+
+    function isValidId(id) { 
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$'); 
+    }
+    
+    function incoming() { return request.resource.data; }
+    function existing() { return resource.data; }
+    function isValidEmail(email) {
+      return email is string && email.matches("(?i)^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$");
+    }
+
+    // Relational Check
+    function isOwnerOfAcceptance(acceptanceId) {
+      return isVerified() && 
+        exists(/databases/$(database)/documents/acceptances/$(acceptanceId)) &&
+        get(/databases/$(database)/documents/acceptances/$(acceptanceId)).data.clientEmail.matches("(?i)^" + request.auth.token.email + "$");
+    }
+
+    // ===============================================================
+    // Validation Blueprints
+    // ===============================================================
+
+    function isValidLead(data) {
+      return data.keys().hasAll(['name', 'email', 'source', 'createdAt']) &&
+             data.name is string && data.name.size() >= 2 && data.name.size() <= 100 &&
+             isValidEmail(data.email) &&
+             (!('phone' in data) || (data.phone is string && data.phone.size() <= 20)) &&
+             (!('company' in data) || (data.company is string && data.company.size() <= 100)) &&
+             (!('message' in data) || (data.message is string && data.message.size() <= 2000)) &&
+             data.source is string &&
+             data.createdAt == request.time;
+    }
+
+    function isValidAcceptance(data) {
+      return data.keys().hasAll(['proposalId', 'acceptedAt', 'status']) &&
+             data.proposalId is string &&
+             (!('clientName' in data) || (data.clientName is string && data.clientName.size() <= 100)) &&
+             (!('clientEmail' in data) || isValidEmail(data.clientEmail)) &&
+             (!('niche' in data) || (data.niche is string)) &&
+             (!('status' in data) || (data.status in ['pending', 'contacted', 'signed'])) &&
+             data.acceptedAt == request.time;
+    }
+
+    function isValidDocument(data) {
+      return data.keys().hasAll(['clientId', 'name', 'type', 'url', 'uploadedAt']) &&
+             data.clientId is string &&
+             data.name is string && data.name.size() <= 255 &&
+             data.type is string &&
+             data.url is string &&
+             data.uploadedAt == request.time;
+    }
+
+    function isValidBidding(data) {
+      return data.keys().hasAll(['clientId', 'title', 'status', 'createdAt']) &&
+             data.clientId is string &&
+             data.title is string &&
+             data.status in ['analise', 'participando', 'vencido', 'perdido', 'impugnado', 'homologado'] &&
+             data.createdAt == request.time;
+    }
+
+    function isValidAcquisition(data) {
+      return data.keys().hasAll(['companyName', 'accessCode', 'status', 'createdAt']) &&
+             data.companyName is string &&
+             data.accessCode is string &&
+             data.status in ['sent', 'viewed', 'accepted', 'declined'] &&
+             data.createdAt == request.time;
+    }
+
+    function isValidMessage(data) {
+      return data.keys().hasAll(['clientId', 'senderId', 'senderName', 'text', 'createdAt']) &&
+             data.clientId is string &&
+             data.senderId == request.auth.uid &&
+             data.senderName is string &&
+             data.text is string && data.text.size() <= 5000 &&
+             data.createdAt == request.time;
+    }
+
+    // ===============================================================
+    // Collection Match Rules
+    // ===============================================================
+
+    match /leads/{leadId} {
+      allow create: if isValidLead(incoming());
+      allow read, write: if isAdmin();
+    }
+
+    match /acceptances/{acceptanceId} {
+      allow create: if isValidAcceptance(incoming());
+      allow read: if isAdmin() || (isVerified() && existing().clientEmail.matches("(?i)^" + request.auth.token.email + "$"));
+      allow update: if (isAdmin() && isValidAcceptance(incoming())) ||
+                    (isVerified() && existing().clientEmail.matches("(?i)^" + request.auth.token.email + "$") &&
+                     incoming().diff(existing()).affectedKeys().hasOnly(['cancellationRequested', 'cancellationReason']) &&
+                     isValidAcceptance(incoming()));
+      allow delete: if isAdmin();
+    }
+
+    match /documents/{docId} {
+      allow create: if isValidDocument(incoming()) && (isAdmin() || isOwnerOfAcceptance(incoming().clientId));
+      allow read: if isAdmin() || isOwnerOfAcceptance(existing().clientId);
+      allow update, delete: if isAdmin();
+    }
+
+    match /biddings/{biddingId} {
+      allow read: if isAdmin() || isOwnerOfAcceptance(existing().clientId);
+      allow write: if isAdmin() && isValidBidding(incoming());
+    }
+
+    match /acquisitions/{acqId} {
+      allow get: if true; // Portal view
+      allow create: if isAdmin() && isValidAcquisition(incoming());
+      allow update: if (isAdmin() && isValidAcquisition(incoming())) ||
+                    (
+                      incoming().diff(existing()).affectedKeys().hasOnly(['status', 'acceptedAt', 'ipAddress', 'userAgent']) &&
+                      incoming().status in ['accepted', 'declined'] &&
+                      isValidAcquisition(incoming())
+                    );
+      allow delete, list: if isAdmin();
+    }
+
+    match /users/{userId} {
+      allow read: if isVerified() && (request.auth.uid == userId || isAdmin());
+      allow write: if isAdmin();
+      // Prevent self-assigned admin
+      allow update: if isVerified() && request.auth.uid == userId && 
+                    !incoming().diff(existing()).affectedKeys().hasAny(['role']) &&
+                    incoming().role == existing().role;
+    }
+
+    match /messages/{messageId} {
+      allow read: if isAdmin() || isOwnerOfAcceptance(existing().clientId);
+      allow create: if isVerified() && isValidMessage(incoming()) && (isAdmin() || isOwnerOfAcceptance(incoming().clientId));
+    }
+
+    match /compliance_logs/{logId} {
+      allow create: if isVerified();
+      allow read: if isAdmin();
+    }
+  }
+}
