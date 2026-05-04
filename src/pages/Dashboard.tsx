@@ -270,6 +270,7 @@ export default function Dashboard() {
   const ADMIN_EMAILS = [
     "dca.tec.br@gmail.com"
   ];
+  const ADMIN_EMAIL = ADMIN_EMAILS[0];
 
   useEffect(() => {
     // Safety timeout to prevent stuck loading
