@@ -49,8 +49,12 @@ export default function Login() {
     try {
       await signInWithPopup(auth, provider);
     } catch (err: any) {
-      console.error("Login error:", err);
-      setError("Erro ao realizar login com Google. Tente novamente.");
+      console.error("Login error details:", err);
+      if (err.code === "auth/unauthorized-domain") {
+        setError("Este domínio não está autorizado no Firebase. Adicione 'dca-tec.pages.dev' nos domínios autorizados do Console do Firebase.");
+      } else {
+        setError("Erro ao realizar login: " + (err.message || "Tente novamente."));
+      }
       setLoading(false);
     }
   };
