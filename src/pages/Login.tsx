@@ -59,7 +59,8 @@ export default function Login() {
       
       if (err.code === "auth/unauthorized-domain") {
         const hostname = window.location.hostname;
-        setError(`Este domínio (${hostname}) não está autorizado no Firebase. Por favor, adicione "${hostname}" em: Console Firebase > Authentication > Settings > Authorized Domains.`);
+        const projectId = auth.app.options.projectId;
+        setError(`Este domínio (${hostname}) não está autorizado no Firebase. Por favor, verifique se adicionou "${hostname}" no Console do Firebase do projeto "${projectId}" (Authentication > Settings > Authorized Domains).`);
       } else if (err.code === "auth/popup-closed-by-user") {
         setError("O login foi cancelado porque a janela foi fechada.");
       } else if (err.code === "auth/network-request-failed") {
