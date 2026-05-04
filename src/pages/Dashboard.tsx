@@ -33,7 +33,8 @@ import {
   FileText,
   Copy,
   Zap,
-  Activity
+  Activity,
+  Layers
 } from "lucide-react";
 import { 
   collection, 
@@ -1451,6 +1452,12 @@ export default function Dashboard() {
                       <div className="flex items-center gap-2">
                         <Filter className="w-4 h-4 text-[#00ffe0]" />
                         Assunto: <span className="text-white">{lead.subject}</span>
+                      </div>
+                    )}
+                    {lead.service && (
+                      <div className="flex items-center gap-2">
+                        <Layers className="w-4 h-4 text-[#00ffe0]" />
+                        Serviço: <span className="text-white uppercase tracking-tighter font-bold">{lead.service}</span>
                       </div>
                     )}
                   </div>
