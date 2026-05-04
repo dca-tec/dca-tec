@@ -46,16 +46,26 @@ export default function Login() {
     setLoading(true);
     setError(null);
     const provider = new GoogleAuthProvider();
+    // Force account selection every time
+    provider.setCustomParameters({
+      prompt: 'select_account'
+    });
+    
     try {
       await signInWithPopup(auth, provider);
     } catch (err: any) {
       console.error("Login error details:", err);
-      if (err.code === "auth/unauthorized-domain") {
-        setError("Este domínio não está autorizado no Firebase. Adicione 'dca-tec.pages.dev' nos domínios autorizados do Console do Firebase.");
-      } else {
-        setError("Erro ao realizar login: " + (err.message || "Tente novamente."));
-      }
       setLoading(false);
+      
+      if (err.code === "auth/unauthorized-domain") {
+        setError("Este domínio (dca-tec.pages.dev) não está autorizado no Firebase. Por favor, adicione-o em: Console Firebase > Authentication > Settings > Authorized Domains.");
+      } else if (err.code === "auth/popup-closed-by-user") {
+        setError("O login foi cancelado porque a janela foi fechada.");
+      } else if (err.code === "auth/network-request-failed") {
+        setError("Erro de rede. Verifique sua conexão.");
+      } else {
+        setError(`Erro no login (${err.code || "desconhecido"}). Verifique se autorizou o domínio dca-tec.pages.dev no Firebase.`);
+      }
     }
   };
 
