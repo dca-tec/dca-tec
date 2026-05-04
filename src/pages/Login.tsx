@@ -64,7 +64,7 @@ export default function Login() {
       } else if (err.code === "auth/network-request-failed") {
         setError("Erro de rede. Verifique sua conexão.");
       } else {
-        setError(`Erro no login (${err.code || "desconhecido"}). Verifique se autorizou o domínio dca-tec.pages.dev no Firebase.`);
+        setError(`⚠️ Erro Crítico de Autenticação [Versão 1.1]: (${err.code || "desconhecido"}). Verifique se autorizou o domínio dca-tec.pages.dev no Console do Firebase (Authentication > Settings > Authorized Domains).`);
       }
     }
   };
