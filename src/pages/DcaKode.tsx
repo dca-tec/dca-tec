@@ -79,7 +79,7 @@ export default function DcaKode() {
                 Init Project <ChevronRight className="w-4 h-4" />
               </button>
               <a 
-                href="https://ai.studio/apps/8fab159c-5549-4e63-8112-9e9f6cfe0314"
+                href="https://kode.dca.tec.br/"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="px-10 py-4 border border-white/20 text-white font-bold uppercase text-xs tracking-widest hover:bg-white hover:text-black transition-all flex items-center justify-center text-center"
