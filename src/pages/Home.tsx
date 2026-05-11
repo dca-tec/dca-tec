@@ -26,7 +26,26 @@ import {
   Users,
   Calendar,
   CheckCircle2,
-  Globe2
+  Globe2,
+  ShoppingBag,
+  BookOpen,
+  Rocket,
+  Anchor,
+  Dna,
+  GraduationCap,
+  Trophy,
+  Briefcase,
+  Stethoscope,
+  Shirt,
+  Car,
+  Eye,
+  Activity,
+  HeartPulse,
+  Brain,
+  Lightbulb,
+  Building,
+  Store,
+  Waves
 } from "lucide-react";
 import React, { useState, FormEvent } from "react";
 import { Link } from "react-router-dom";
@@ -101,41 +120,56 @@ export default function Home() {
 
   const navLinks = [
     { name: "Sobre", href: "#sobre" },
-    { name: "Ecossistema", href: "#ecossistema" },
-    { name: "Consultoria", href: "#consultoria" },
+    { name: "Consultoria", href: "#consultoria-integrada" },
     { name: "Apps", href: "#apps" },
-    { name: "Projetos", href: "#projetos" },
+    { name: "Engenharia", href: "#engenharia" },
+    { name: "Arquitetura", href: "#arquitetura-design" },
+    { name: "Eventos", href: "#eventos" },
+    { name: "Biofísica", href: "#biofisica-saude" },
     { name: "Contato", href: "#contato" },
     { name: "Portal", href: "/login", isInternal: true },
   ];
 
   const categories = [
     {
-      id: "ecossistema",
-      title: "Ecossistema DCA TEC",
-      icon: <Cpu className="w-6 h-6 text-[#00ffe0]" />,
+      id: "consultoria-integrada",
+      title: "Consultoria Integrada",
+      icon: <Briefcase className="w-6 h-6 text-[#00ffe0]" />,
       items: [
-        { name: "Licitações", url: "/licitacoes", icon: <Gavel className="w-4 h-4" />, isInternal: true },
+        { name: "Tributária", url: "/restituicao-tributaria", icon: <Scale className="w-4 h-4" />, isInternal: true },
         { name: "Automações Indústria 6.0", url: "/automacao", icon: <Zap className="w-4 h-4" />, isInternal: true },
+        { name: "Licitações", url: "/licitacoes", icon: <Gavel className="w-4 h-4" />, isInternal: true },
+        { name: "Capital Finance", url: "#", icon: <Zap className="w-4 h-4" /> },
+        { name: "Marketing de Excelência", url: "#", icon: <Palette className="w-4 h-4" /> },
         { name: "DCA Kode", url: "/kode", icon: <Code className="w-4 h-4" />, isInternal: true },
         { name: "DCA Design Concepts", url: "/concepts", icon: <Palette className="w-4 h-4" />, isInternal: true },
-        { name: "Ursa Polaris Games", url: "/games", icon: <Gamepad2 className="w-4 h-4" />, isInternal: true },
+        { name: "Editora", url: "#", icon: <BookOpen className="w-4 h-4" /> },
+        { name: "Gamefication VR", url: "/games", icon: <Gamepad2 className="w-4 h-4" />, isInternal: true },
       ]
     },
     {
-      id: "consultoria",
+      id: "consultoria-especializada",
       title: "Consultoria Especializada",
-      icon: <Scale className="w-6 h-6 text-[#00ffe0]" />,
+      icon: <Microscope className="w-6 h-6 text-[#00ffe0]" />,
       items: [
-        { name: "Tributária (DCA + OSET)", url: "/restituicao-tributaria", icon: <Scale className="w-4 h-4" />, isInternal: true },
-        { name: "CISQ Biomédica", url: "https://cisq.lovable.app", icon: <Microscope className="w-4 h-4" /> },
-        { name: "Hypersenses", url: "https://hypersenses.lovable.app", icon: <Zap className="w-4 h-4" /> },
-        { name: "Saara Prime", url: "https://saaraprime.lovable.app", icon: <Building2 className="w-4 h-4" /> },
-        { name: "Aiolos", url: "https://aiolos.lovable.app", icon: <Wind className="w-4 h-4" /> },
-        { name: "Genesis Acqua", url: "https://genesisacqua.lovable.app", icon: <FlaskConical className="w-4 h-4" /> },
-        { name: "Hidrogen", url: "https://hidrogen.lovable.app", icon: <Zap className="w-4 h-4" /> },
-        { name: "Narditec Sanitização", url: "https://narditec.lovable.app", icon: <Wind className="w-4 h-4" /> },
-        { name: "Ozonecare", url: "https://ozonecare.lovable.app", icon: <Wind className="w-4 h-4" /> },
+        { name: "Biomédica", url: "#", icon: <Stethoscope className="w-4 h-4" /> },
+        { name: "CISQ I - Saúde e Quântica", url: "https://cisq.lovable.app", icon: <HeartPulse className="w-4 h-4" /> },
+        { name: "Biofísica", url: "#", icon: <Activity className="w-4 h-4" /> },
+        { name: "CISQ II - Sistemas Quânticos", url: "#", icon: <Cpu className="w-4 h-4" /> },
+        { name: "Perícia e Excelência", url: "#", icon: <Scale className="w-4 h-4" /> },
+        { name: "C.I.S.C III - Sistemas Complexos", url: "#", icon: <Brain className="w-4 h-4" /> },
+        { name: "Nardi Tec Sanitização", url: "https://narditec.lovable.app", icon: <Wind className="w-4 h-4" /> },
+        { name: "Laboratorial", url: "#", icon: <FlaskConical className="w-4 h-4" /> },
+        { name: "HUGH Shesau (Biotec)", url: "#", icon: <Dna className="w-4 h-4" /> },
+      ]
+    },
+    {
+      id: "universidade",
+      title: "Universidade e Inovação",
+      icon: <GraduationCap className="w-6 h-6 text-[#00ffe0]" />,
+      items: [
+        { name: "HUGH Edwin EBERS Smith", url: "#", icon: <GraduationCap className="w-4 h-4" /> },
+        { name: "Garage Tec (Incubadora)", url: "#", icon: <Lightbulb className="w-4 h-4" /> },
       ]
     },
     {
@@ -144,26 +178,95 @@ export default function Home() {
       icon: <Smartphone className="w-6 h-6 text-[#00ffe0]" />,
       items: [
         { name: "Concerge", url: "https://concerge.lovable.app/", icon: <Smartphone className="w-4 h-4" /> },
-        { name: "Jet Deluxe", url: "https://jetdeluxe.lovable.app", icon: <Plane className="w-4 h-4" /> },
         { name: "Jetfy", url: "https://jetfy.lovable.app", icon: <Plane className="w-4 h-4" /> },
         { name: "Workclass", url: "https://workclass.lovable.app", icon: <Building2 className="w-4 h-4" /> },
+        { name: "Smart Own", url: "#", icon: <Smartphone className="w-4 h-4" /> },
+        { name: "Mobyfy", url: "#", icon: <Smartphone className="w-4 h-4" /> },
+        { name: "E-Sense", url: "#", icon: <Smartphone className="w-4 h-4" /> },
+        { name: "SAOAB", url: "#", icon: <Smartphone className="w-4 h-4" /> },
+        { name: "Opera Broker", url: "#", icon: <Smartphone className="w-4 h-4" /> },
+        { name: "Ghettos", url: "#", icon: <Smartphone className="w-4 h-4" /> },
+        { name: "SmartVision", url: "#", icon: <Eye className="w-4 h-4" /> },
       ]
     },
     {
-      id: "projetos",
-      title: "Projetos, Arquitetura & Engenharia",
+      id: "engenharia",
+      title: "Engenharia, Aeroespacial & Naval",
       icon: <Building2 className="w-6 h-6 text-[#00ffe0]" />,
       items: [
-        { name: "Saara Prime Residences", url: "https://saaraprimeresidences.lovable.app", icon: <Building2 className="w-4 h-4" /> },
-        { name: "Pyramide Residence", url: "https://pyramideresidence.lovable.app", icon: <Building2 className="w-4 h-4" /> },
-        { name: "Aylyn", url: "https://aylyn.lovable.app", icon: <Building2 className="w-4 h-4" /> },
-        { name: "Luxfrost", url: "https://luxfrost.lovable.app", icon: <Building2 className="w-4 h-4" /> },
-        { name: "Zenite Loft", url: "https://zeniteloft.lovable.app", icon: <Building2 className="w-4 h-4" /> },
-        { name: "Zenite Studio", url: "https://zenitestudio.lovable.app", icon: <Building2 className="w-4 h-4" /> },
-        { name: "Bluenardi Saneamento", url: "https://bluenardi.lovable.app", icon: <HardHat className="w-4 h-4" /> },
-        { name: "Lagoa Lumina", url: "https://lagoalumina.lovable.app", icon: <Tent className="w-4 h-4" /> },
-        { name: "Hangar Customs", url: "https://hangarcustoms.lovable.app", icon: <Plane className="w-4 h-4" /> },
+        { name: "Urbtec (Arquitetura)", url: "#", icon: <Building className="w-4 h-4" /> },
+        { name: "Arctecturus (P. Futuros)", url: "#", icon: <Building className="w-4 h-4" /> },
+        { name: "ArcTec (Design Inteligente)", url: "#", icon: <Cpu className="w-4 h-4" /> },
+        { name: "Hangar Customs (Oficina)", url: "https://hangarcustoms.lovable.app", icon: <Car className="w-4 h-4" /> },
+        { name: "Aureon", url: "#", icon: <Rocket className="w-4 h-4" /> },
+        { name: "Titan", url: "#", icon: <Rocket className="w-4 h-4" /> },
+        { name: "Horizon", url: "#", icon: <Rocket className="w-4 h-4" /> },
+        { name: "Propulsion", url: "#", icon: <Zap className="w-4 h-4" /> },
+        { name: "Cyberboat", url: "#", icon: <Anchor className="w-4 h-4" /> },
+      ]
+    },
+    {
+      id: "eventos",
+      title: "Produções de Eventos",
+      icon: <Calendar className="w-6 h-6 text-[#00ffe0]" />,
+      items: [
+        { name: "Inside Spirit (Produção)", url: "#", icon: <Users className="w-4 h-4" /> },
         { name: "Zenite Estandes", url: "https://zeniteestandes.lovable.app", icon: <Tent className="w-4 h-4" /> },
+        { name: "Lagoa Lumina (Espaços)", url: "https://lagoalumina.lovable.app", icon: <Tent className="w-4 h-4" /> },
+        { name: "Opera Spaces", url: "#", icon: <Building className="w-4 h-4" /> },
+        { name: "Geodex (Feiras)", url: "#", icon: <Tent className="w-4 h-4" /> },
+        { name: "Opera Quantum", url: "#", icon: <Tent className="w-4 h-4" /> },
+        { name: "CISQ Life Hub", url: "#", icon: <Users className="w-4 h-4" /> },
+        { name: "Zetetikos", url: "#", icon: <Users className="w-4 h-4" /> },
+      ]
+    },
+    {
+      id: "lojas-lifestyle",
+      title: "Lojas & Estilo de Vida",
+      icon: <ShoppingBag className="w-6 h-6 text-[#00ffe0]" />,
+      items: [
+        { name: "Hangar Tec Marketplace", url: "#", icon: <Store className="w-4 h-4" /> },
+        { name: "Regenerativa Terra", url: "#", icon: <BookOpen className="w-4 h-4" /> },
+        { name: "DCA Inside Codes", url: "#", icon: <BookOpen className="w-4 h-4" /> },
+        { name: "Hangar Premium Motors", url: "#", icon: <Car className="w-4 h-4" /> },
+        { name: "Alazão Motors", url: "#", icon: <Car className="w-4 h-4" /> },
+        { name: "Purelinn Moda", url: "#", icon: <Shirt className="w-4 h-4" /> },
+      ]
+    },
+    {
+      id: "arquitetura-design",
+      title: "Arquitetura & Design",
+      icon: <Palette className="w-6 h-6 text-[#00ffe0]" />,
+      items: [
+        { name: "Casas Zenite", url: "#", icon: <Building2 className="w-4 h-4" /> },
+        { name: "Saara Prime Residences", url: "https://saaraprime.lovable.app", icon: <Building2 className="w-4 h-4" /> },
+        { name: "Pyro Glass Residences", url: "#", icon: <Building2 className="w-4 h-4" /> },
+        { name: "Aylyn Ambientes", url: "https://aylyn.lovable.app", icon: <Building2 className="w-4 h-4" /> },
+        { name: "LUX FROST HEMET (Cobre)", url: "https://luxfrost.lovable.app", icon: <Building2 className="w-4 h-4" /> },
+      ]
+    },
+    {
+      id: "biofisica-saude",
+      title: "Biofísica e Bem-Estar",
+      icon: <Activity className="w-6 h-6 text-[#00ffe0]" />,
+      items: [
+        { name: "Hypersenses", url: "https://hypersenses.lovable.app", icon: <Zap className="w-4 h-4" /> },
+        { name: "Hidrogen Shop", url: "https://hidrogen.lovable.app", icon: <Zap className="w-4 h-4" /> },
+        { name: "Saara Sahel (Terapêuticos)", url: "#", icon: <Activity className="w-4 h-4" /> },
+        { name: "Ozônio Médico", url: "#", icon: <Stethoscope className="w-4 h-4" /> },
+        { name: "Ozoncare", url: "https://ozonecare.lovable.app", icon: <Wind className="w-4 h-4" /> },
+        { name: "Aiolos", url: "https://aiolos.lovable.app", icon: <Wind className="w-4 h-4" /> },
+        { name: "Genesis Acqua", url: "https://genesisacqua.lovable.app", icon: <FlaskConical className="w-4 h-4" /> },
+        { name: "Bluenardi Hidrosanitária", url: "https://bluenardi.lovable.app", icon: <Waves className="w-4 h-4" /> },
+      ]
+    },
+    {
+      id: "parceiros",
+      title: "Clientes e Parceiros",
+      icon: <Users className="w-6 h-6 text-[#00ffe0]" />,
+      items: [
+        { name: "Nossos Clientes", url: "#", icon: <Users className="w-4 h-4" /> },
+        { name: "Parceiros Estratégicos", url: "#", icon: <Users className="w-4 h-4" /> },
       ]
     }
   ];
@@ -283,7 +386,7 @@ export default function Home() {
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ delay: 0.6, duration: 0.5 }}
-          href="#ecossistema" 
+          href="#consultoria-integrada" 
           className="btn-gradient px-10 py-4 rounded-full text-black font-bold text-lg hover:scale-105 transition-transform flex items-center gap-2"
         >
           Explorar Ecossistema <ChevronRight className="w-5 h-5" />
@@ -314,6 +417,18 @@ export default function Home() {
               </p>
             </div>
           </div>
+        </motion.div>
+      </section>
+
+      {/* Ecossistema Section Header */}
+      <section id="ecossistema-titulo" className="pt-32 pb-16 px-6 text-center">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+        >
+          <h2 className="text-4xl md:text-6xl font-bold tracking-[8px] hero-gradient-text uppercase mb-4">Ecossistema DCA TEC</h2>
+          <div className="w-24 h-1 bg-[#00ffe0] mx-auto rounded-full opacity-50" />
         </motion.div>
       </section>
 
