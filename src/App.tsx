@@ -15,6 +15,7 @@ const DcaKode = lazy(() => import("./pages/DcaKode"));
 const UrsaPolarisGames = lazy(() => import("./pages/UrsaPolarisGames"));
 const Licitacoes = lazy(() => import("./pages/Licitacoes"));
 const Industria = lazy(() => import("./pages/Industria"));
+const ProjectDetail = lazy(() => import("./pages/ProjectDetail"));
 
 // Loading fallback component
 const PageLoader = () => (
@@ -38,6 +39,7 @@ export default function App() {
           <Route path="/ma/:proposalId" element={<AcquisitionPortal />} />
           <Route path="/portal-oculto-dca" element={<HiddenPortal />} />
           <Route path="/restituicao-tributaria" element={<TaxRecovery />} />
+          <Route path="/projects/:slug" element={<ProjectDetail />} />
           <Route path="/admin/dashboard" element={<Dashboard />} />
           <Route path="/cliente/dashboard" element={<ClientDashboard />} />
           <Route path="/login" element={<Login />} />

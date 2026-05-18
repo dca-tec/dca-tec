@@ -139,11 +139,11 @@ export default function Home() {
         { name: "Tributária", url: "/restituicao-tributaria", icon: <Scale className="w-4 h-4" />, isInternal: true },
         { name: "Automações Indústria 6.0", url: "/automacao", icon: <Zap className="w-4 h-4" />, isInternal: true },
         { name: "Licitações", url: "/licitacoes", icon: <Gavel className="w-4 h-4" />, isInternal: true },
-        { name: "Capital Finance", url: "#", icon: <Zap className="w-4 h-4" /> },
-        { name: "Marketing de Excelência", url: "#", icon: <Palette className="w-4 h-4" /> },
+        { name: "Capital Finance", url: "/projects/capital-finance", icon: <Zap className="w-4 h-4" />, isInternal: true },
+        { name: "Marketing de Excelência", url: "/projects/marketing-excelencia", icon: <Palette className="w-4 h-4" />, isInternal: true },
         { name: "DCA Kode", url: "/kode", icon: <Code className="w-4 h-4" />, isInternal: true },
         { name: "DCA Design Concepts", url: "/concepts", icon: <Palette className="w-4 h-4" />, isInternal: true },
-        { name: "Editora", url: "#", icon: <BookOpen className="w-4 h-4" /> },
+        { name: "Editora", url: "/projects/editora", icon: <BookOpen className="w-4 h-4" />, isInternal: true },
         { name: "Gamefication VR", url: "/games", icon: <Gamepad2 className="w-4 h-4" />, isInternal: true },
       ]
     },
@@ -152,15 +152,15 @@ export default function Home() {
       title: "Consultoria Especializada",
       icon: <Microscope className="w-6 h-6 text-[#00ffe0]" />,
       items: [
-        { name: "Biomédica", url: "#", icon: <Stethoscope className="w-4 h-4" /> },
+        { name: "Biomédica", url: "/projects/biomedica", icon: <Stethoscope className="w-4 h-4" />, isInternal: true },
         { name: "CISQ I - Saúde e Quântica", url: "https://cisq.lovable.app", icon: <HeartPulse className="w-4 h-4" /> },
-        { name: "Biofísica", url: "#", icon: <Activity className="w-4 h-4" /> },
-        { name: "CISQ II - Sistemas Quânticos", url: "#", icon: <Cpu className="w-4 h-4" /> },
-        { name: "Perícia e Excelência", url: "#", icon: <Scale className="w-4 h-4" /> },
-        { name: "C.I.S.C III - Sistemas Complexos", url: "#", icon: <Brain className="w-4 h-4" /> },
+        { name: "Biofísica", url: "/projects/biofisica", icon: <Activity className="w-4 h-4" />, isInternal: true },
+        { name: "CISQ II - Sistemas Quânticos", url: "/projects/cisq-ii", icon: <Cpu className="w-4 h-4" />, isInternal: true },
+        { name: "Perícia e Excelência", url: "/projects/pericia-excelencia", icon: <Scale className="w-4 h-4" />, isInternal: true },
+        { name: "C.I.S.C III - Sistemas Complexos", url: "/projects/cisc-iii", icon: <Brain className="w-4 h-4" />, isInternal: true },
         { name: "Nardi Tec Sanitização", url: "https://narditec.lovable.app", icon: <Wind className="w-4 h-4" /> },
-        { name: "Laboratorial", url: "#", icon: <FlaskConical className="w-4 h-4" /> },
-        { name: "HUGH Shesau (Biotec)", url: "#", icon: <Dna className="w-4 h-4" /> },
+        { name: "Laboratorial", url: "/projects/laboratorial", icon: <FlaskConical className="w-4 h-4" />, isInternal: true },
+        { name: "HUGH Shesau (Biotec)", url: "/projects/hugh-shesau", icon: <Dna className="w-4 h-4" />, isInternal: true },
       ]
     },
     {
@@ -168,8 +168,8 @@ export default function Home() {
       title: "Universidade e Inovação",
       icon: <GraduationCap className="w-6 h-6 text-[#00ffe0]" />,
       items: [
-        { name: "HUGH Edwin EBERS Smith", url: "#", icon: <GraduationCap className="w-4 h-4" /> },
-        { name: "Garage Tec (Incubadora)", url: "#", icon: <Lightbulb className="w-4 h-4" /> },
+        { name: "HUGH Edwin EBERS Smith", url: "/projects/hugh-edwin", icon: <GraduationCap className="w-4 h-4" />, isInternal: true },
+        { name: "Garage Tec (Incubadora)", url: "/projects/garage-tec", icon: <Lightbulb className="w-4 h-4" />, isInternal: true },
       ]
     },
     {
@@ -180,13 +180,13 @@ export default function Home() {
         { name: "Concerge", url: "https://concerge.lovable.app/", icon: <Smartphone className="w-4 h-4" /> },
         { name: "Jetfy", url: "https://jetfy.lovable.app", icon: <Plane className="w-4 h-4" /> },
         { name: "Workclass", url: "https://workclass.lovable.app", icon: <Building2 className="w-4 h-4" /> },
-        { name: "Smart Own", url: "#", icon: <Smartphone className="w-4 h-4" /> },
-        { name: "Mobyfy", url: "#", icon: <Smartphone className="w-4 h-4" /> },
-        { name: "E-Sense", url: "#", icon: <Smartphone className="w-4 h-4" /> },
-        { name: "SAOAB", url: "#", icon: <Smartphone className="w-4 h-4" /> },
-        { name: "Opera Broker", url: "#", icon: <Smartphone className="w-4 h-4" /> },
-        { name: "Ghettos", url: "#", icon: <Smartphone className="w-4 h-4" /> },
-        { name: "SmartVision", url: "#", icon: <Eye className="w-4 h-4" /> },
+        { name: "Smart Own", url: "/projects/smart-own", icon: <Smartphone className="w-4 h-4" />, isInternal: true },
+        { name: "Mobyfy", url: "/projects/mobyfy", icon: <Smartphone className="w-4 h-4" />, isInternal: true },
+        { name: "E-Sense", url: "/projects/e-sense", icon: <Smartphone className="w-4 h-4" />, isInternal: true },
+        { name: "SAOAB", url: "/projects/saoab", icon: <Smartphone className="w-4 h-4" />, isInternal: true },
+        { name: "Opera Broker", url: "/projects/opera-broker", icon: <Smartphone className="w-4 h-4" />, isInternal: true },
+        { name: "Ghettos", url: "/projects/ghettos", icon: <Smartphone className="w-4 h-4" />, isInternal: true },
+        { name: "SmartVision", url: "/projects/smartvision", icon: <Eye className="w-4 h-4" />, isInternal: true },
       ]
     },
     {
@@ -194,15 +194,15 @@ export default function Home() {
       title: "Engenharia, Aeroespacial & Naval",
       icon: <Building2 className="w-6 h-6 text-[#00ffe0]" />,
       items: [
-        { name: "Urbtec (Arquitetura)", url: "#", icon: <Building className="w-4 h-4" /> },
-        { name: "Arctecturus (P. Futuros)", url: "#", icon: <Building className="w-4 h-4" /> },
-        { name: "ArcTec (Design Inteligente)", url: "#", icon: <Cpu className="w-4 h-4" /> },
+        { name: "Urbtec (Arquitetura)", url: "/projects/urbtec", icon: <Building className="w-4 h-4" />, isInternal: true },
+        { name: "Arctecturus (P. Futuros)", url: "/projects/arctecturus", icon: <Building className="w-4 h-4" />, isInternal: true },
+        { name: "ArcTec (Design Inteligente)", url: "/projects/arctec", icon: <Cpu className="w-4 h-4" />, isInternal: true },
         { name: "Hangar Customs (Oficina)", url: "https://hangarcustoms.lovable.app", icon: <Car className="w-4 h-4" /> },
-        { name: "Aureon", url: "#", icon: <Rocket className="w-4 h-4" /> },
-        { name: "Titan", url: "#", icon: <Rocket className="w-4 h-4" /> },
-        { name: "Horizon", url: "#", icon: <Rocket className="w-4 h-4" /> },
-        { name: "Propulsion", url: "#", icon: <Zap className="w-4 h-4" /> },
-        { name: "Cyberboat", url: "#", icon: <Anchor className="w-4 h-4" /> },
+        { name: "Aureon", url: "/projects/aureon", icon: <Rocket className="w-4 h-4" />, isInternal: true },
+        { name: "Titan", url: "/projects/titan", icon: <Rocket className="w-4 h-4" />, isInternal: true },
+        { name: "Horizon", url: "/projects/horizon", icon: <Rocket className="w-4 h-4" />, isInternal: true },
+        { name: "Propulsion", url: "/projects/propulsion", icon: <Zap className="w-4 h-4" />, isInternal: true },
+        { name: "Cyberboat", url: "/projects/cyberboat", icon: <Anchor className="w-4 h-4" />, isInternal: true },
       ]
     },
     {
@@ -210,14 +210,14 @@ export default function Home() {
       title: "Produções de Eventos",
       icon: <Calendar className="w-6 h-6 text-[#00ffe0]" />,
       items: [
-        { name: "Inside Spirit (Produção)", url: "#", icon: <Users className="w-4 h-4" /> },
+        { name: "Inside Spirit (Produção)", url: "/projects/inside-spirit", icon: <Users className="w-4 h-4" />, isInternal: true },
         { name: "Zenite Estandes", url: "https://zeniteestandes.lovable.app", icon: <Tent className="w-4 h-4" /> },
         { name: "Lagoa Lumina (Espaços)", url: "https://lagoalumina.lovable.app", icon: <Tent className="w-4 h-4" /> },
-        { name: "Opera Spaces", url: "#", icon: <Building className="w-4 h-4" /> },
-        { name: "Geodex (Feiras)", url: "#", icon: <Tent className="w-4 h-4" /> },
-        { name: "Opera Quantum", url: "#", icon: <Tent className="w-4 h-4" /> },
-        { name: "CISQ Life Hub", url: "#", icon: <Users className="w-4 h-4" /> },
-        { name: "Zetetikos", url: "#", icon: <Users className="w-4 h-4" /> },
+        { name: "Opera Spaces", url: "/projects/opera-spaces", icon: <Building className="w-4 h-4" />, isInternal: true },
+        { name: "Geodex (Feiras)", url: "/projects/geodex", icon: <Tent className="w-4 h-4" />, isInternal: true },
+        { name: "Opera Quantum", url: "/projects/opera-quantum", icon: <Tent className="w-4 h-4" />, isInternal: true },
+        { name: "CISQ Life Hub", url: "/projects/cisq-life-hub", icon: <Users className="w-4 h-4" />, isInternal: true },
+        { name: "Zetetikos", url: "/projects/zetetikos", icon: <Users className="w-4 h-4" />, isInternal: true },
       ]
     },
     {
@@ -225,12 +225,12 @@ export default function Home() {
       title: "Lojas & Estilo de Vida",
       icon: <ShoppingBag className="w-6 h-6 text-[#00ffe0]" />,
       items: [
-        { name: "Hangar Tec Marketplace", url: "#", icon: <Store className="w-4 h-4" /> },
-        { name: "Regenerativa Terra", url: "#", icon: <BookOpen className="w-4 h-4" /> },
-        { name: "DCA Inside Codes", url: "#", icon: <BookOpen className="w-4 h-4" /> },
-        { name: "Hangar Premium Motors", url: "#", icon: <Car className="w-4 h-4" /> },
-        { name: "Alazão Motors", url: "#", icon: <Car className="w-4 h-4" /> },
-        { name: "Purelinn Moda", url: "#", icon: <Shirt className="w-4 h-4" /> },
+        { name: "Hangar Tec Marketplace", url: "/projects/hangar-marketplace", icon: <Store className="w-4 h-4" />, isInternal: true },
+        { name: "Regenerativa Terra", url: "/projects/regenerativa-terra", icon: <BookOpen className="w-4 h-4" />, isInternal: true },
+        { name: "DCA Inside Codes", url: "/projects/dca-inside-codes", icon: <BookOpen className="w-4 h-4" />, isInternal: true },
+        { name: "Hangar Premium Motors", url: "/projects/hangar-premium", icon: <Car className="w-4 h-4" />, isInternal: true },
+        { name: "Alazão Motors", url: "/projects/alazao-motors", icon: <Car className="w-4 h-4" />, isInternal: true },
+        { name: "Purelinn Moda", url: "/projects/purelinn", icon: <Shirt className="w-4 h-4" />, isInternal: true },
       ]
     },
     {
@@ -238,11 +238,11 @@ export default function Home() {
       title: "Arquitetura & Design",
       icon: <Palette className="w-6 h-6 text-[#00ffe0]" />,
       items: [
-        { name: "Casas Zenite", url: "#", icon: <Building2 className="w-4 h-4" /> },
+        { name: "Casas Zenite", url: "/projects/casas-zenite", icon: <Building2 className="w-4 h-4" />, isInternal: true },
         { name: "Saara Prime Residences", url: "https://saaraprime.lovable.app", icon: <Building2 className="w-4 h-4" /> },
-        { name: "Pyro Glass Residences", url: "#", icon: <Building2 className="w-4 h-4" /> },
+        { name: "Pyro Glass Residences", url: "/projects/pyro-glass", icon: <Building2 className="w-4 h-4" />, isInternal: true },
         { name: "Aylyn Ambientes", url: "https://aylyn.lovable.app", icon: <Building2 className="w-4 h-4" /> },
-        { name: "LUX FROST HEMET (Cobre)", url: "https://luxfrost.lovable.app", icon: <Building2 className="w-4 h-4" /> },
+        { name: "LUX FROST HEMET (Cobre)", url: "/projects/luxfrost-hemet", icon: <Building2 className="w-4 h-4" />, isInternal: true },
       ]
     },
     {
@@ -252,8 +252,8 @@ export default function Home() {
       items: [
         { name: "Hypersenses", url: "https://hypersenses.lovable.app", icon: <Zap className="w-4 h-4" /> },
         { name: "Hidrogen Shop", url: "https://hidrogen.lovable.app", icon: <Zap className="w-4 h-4" /> },
-        { name: "Saara Sahel (Terapêuticos)", url: "#", icon: <Activity className="w-4 h-4" /> },
-        { name: "Ozônio Médico", url: "#", icon: <Stethoscope className="w-4 h-4" /> },
+        { name: "Saara Sahel (Terapêuticos)", url: "/projects/saara-sahel", icon: <Activity className="w-4 h-4" />, isInternal: true },
+        { name: "Ozônio Médico", url: "/projects/ozonio-medico", icon: <Stethoscope className="w-4 h-4" />, isInternal: true },
         { name: "Ozoncare", url: "https://ozonecare.lovable.app", icon: <Wind className="w-4 h-4" /> },
         { name: "Aiolos", url: "https://aiolos.lovable.app", icon: <Wind className="w-4 h-4" /> },
         { name: "Genesis Acqua", url: "https://genesisacqua.lovable.app", icon: <FlaskConical className="w-4 h-4" /> },
@@ -265,8 +265,8 @@ export default function Home() {
       title: "Clientes e Parceiros",
       icon: <Users className="w-6 h-6 text-[#00ffe0]" />,
       items: [
-        { name: "Nossos Clientes", url: "#", icon: <Users className="w-4 h-4" /> },
-        { name: "Parceiros Estratégicos", url: "#", icon: <Users className="w-4 h-4" /> },
+        { name: "Nossos Clientes", url: "/projects/nossos-clientes", icon: <Users className="w-4 h-4" />, isInternal: true },
+        { name: "Parceiros Estratégicos", url: "/projects/parceiros-estrategicos", icon: <Users className="w-4 h-4" />, isInternal: true },
       ]
     }
   ];
