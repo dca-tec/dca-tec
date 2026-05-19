@@ -23,7 +23,7 @@ export default function Login() {
         setLoading(true);
         // Check if admin
         if (user.email?.toLowerCase() === "dca.tec.br@gmail.com") {
-          navigate("/admin");
+          navigate("/admin/dashboard");
           return;
         }
 
