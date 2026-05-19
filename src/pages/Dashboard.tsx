@@ -34,8 +34,11 @@ import {
   Copy,
   Zap,
   Activity,
-  Layers
+  Layers,
+  ShieldCheck,
+  Lock
 } from "lucide-react";
+import CyberSecurityMonitor from "../components/CyberSecurityMonitor";
 import { 
   collection, 
   query, 
@@ -159,7 +162,7 @@ export default function Dashboard() {
   const [documents, setDocuments] = useState<ClientDocument[]>([]);
   const [biddings, setBiddings] = useState<Bidding[]>([]);
   const [acquisitions, setAcquisitions] = useState<AcquisitionProposal[]>([]);
-  const [activeTab, setActiveTab] = useState<'leads' | 'clients' | 'acquisitions' | 'instructions'>('leads');
+  const [activeTab, setActiveTab] = useState<'leads' | 'clients' | 'acquisitions' | 'instructions' | 'cybersecurity'>('leads');
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedClient, setSelectedClient] = useState<Acceptance | null>(null);
   const [clientDetailTab, setClientDetailTab] = useState<'info' | 'documents' | 'biddings' | 'checklist' | 'chat'>('info');
@@ -945,6 +948,12 @@ export default function Dashboard() {
             <span className="font-bold text-xs uppercase tracking-[2px]">M&A Strategic Hub</span>
           </button>
 
+          <button onClick={() => setActiveTab('cybersecurity')} className={navItemClass('cybersecurity')}>
+            <ShieldCheck className="w-5 h-5 text-[#00ffe0]" />
+            <span className="font-bold text-xs uppercase tracking-[2px]">Cybersecurity & IA</span>
+            <div className="ml-auto w-2 h-2 bg-[#00ffe0] rounded-full animate-pulse" />
+          </button>
+
           {/* Collapsible Group: Clientes */}
           <div className="pt-4">
             <button 
@@ -1064,13 +1073,15 @@ export default function Dashboard() {
                activeTab === 'clients' ? 'Consultoria Integrada' : 
                activeTab === 'acquisitions' ? 'M&A Strategic Hub' : 
                activeTab === 'instructions' ? 'Instruções' : 
+               activeTab === 'cybersecurity' ? 'Monitor de Cybersecurity & LGPD' :
                activeTab === 'consultoria_especializada' ? 'Consultoria Especializada' :
                'Área em Desenvolvimento'}
             </h1>
             <p className="text-white/40 text-sm">
                {activeTab === 'leads' || activeTab === 'clients' || activeTab === 'acquisitions' 
                  ? 'Acompanhe as interações em tempo real.'
-                 : 'Esta seção está sendo preparada para o próximo rollout.'}
+                 : activeTab === 'cybersecurity' ? 'Proteção Zero Trust e Auditoria LGPD Ativa.' :
+                 'Esta seção está sendo preparada para o próximo rollout.'}
             </p>
           </div>
 
@@ -1592,6 +1603,8 @@ export default function Dashboard() {
               <p className="text-white/30 font-bold uppercase tracking-widest text-sm">Nenhum cliente encontrado</p>
             </div>
           )}
+
+          {activeTab === 'cybersecurity' && <CyberSecurityMonitor />}
         </div>
       </main>
 
