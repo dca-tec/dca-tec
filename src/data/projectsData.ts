@@ -472,5 +472,50 @@ export const projectsData: Record<string, ProjectInfo> = {
     longDescription: "A LUX FROST HEMET é uma solução de refrigeração monumental. Móveis que funcionam como câmaras frias, grandes armários ou containers construídos inteiramente em cobre para precisão térmica e estética brutalista.",
     icon: Building2,
     features: ["Precisão Térmica", "Estrutura de Cobre", "Refrigeração Industrial"]
+  },
+  "geobio": {
+    slug: "geobio",
+    name: "GEOBIO",
+    category: "Engenharia",
+    description: "Geopolimerização Ancestral Pozolânica.",
+    longDescription: "Pesquisa e aplicação de técnicas ancestrais de geopolimerização para construção civil de ultra-resistência e baixo impacto ambiental, utilizando materiais pozolânicos de alta reatividade.",
+    icon: Building,
+    features: ["Construção Ancestral", "Materiais Sustentáveis", "Alta Durabilidade"]
+  },
+  "biotec-cogumelos": {
+    slug: "biotec-cogumelos",
+    name: "BIOTEC Cogumelos",
+    category: "Consultoria Especializada",
+    description: "Produção e Laboratório de Cogumelos Medicinais.",
+    longDescription: "Laboratório de biotecnologia focado no cultivo controlado e extração de compostos bioativos de cogumelos medicinais para fins terapêuticos e nutricionais.",
+    icon: FlaskConical,
+    features: ["Cultivo Controlado", "Extração Bioativa", "Pesquisa Micológica"]
+  },
+  "instituto-galenus": {
+    slug: "instituto-galenus",
+    name: "Instituto Galenus",
+    category: "Universidade e Inovação",
+    description: "Medicina Natural, Biblioteca e Cursos.",
+    longDescription: "Um centro dedicado ao ensino da medicina natural baseada em evidências, com uma vasta biblioteca técnica e cursos de especialização para profissionais de saúde.",
+    icon: GraduationCap,
+    features: ["Educação em Saúde", "Biblioteca Técnica", "Medicina Natural"]
+  },
+  "neotropica": {
+    slug: "neotropica",
+    name: "Neotropica Serpentário",
+    category: "Engenharia",
+    description: "Serpentário de Alta Tecnologia com 6 Domos.",
+    longDescription: "Infraestrutura bio-tecnológica avançada composta por 6 domos geodésicos para criação, manejo e extração ética de peçonhas para uso farmacêutico e científico.",
+    icon: Building2,
+    features: ["Domos Geodésicos", "Extração de Peçonhas", "Manejo Ético"]
+  },
+  "loja-cobre": {
+    slug: "loja-cobre",
+    name: "Loja Especializada em Cobre",
+    category: "Lojas & Estilo de Vida",
+    description: "Produtos de fábrica em cobre para diversos setores.",
+    longDescription: "Loja de fábrica dedicada à arte e funcionalidade do cobre. Oferecemos desde utensílios luxuosos até componentes técnicos e decorativos de alta pureza.",
+    icon: Store,
+    features: ["Cobre de Alta Pureza", "Venda Direta de Fábrica", "Design Funcional"]
   }
 };

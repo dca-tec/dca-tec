@@ -160,6 +160,7 @@ export default function Home() {
         { name: "C.I.S.C III - Sistemas Complexos", url: "/projects/cisc-iii", icon: <Brain className="w-4 h-4" />, isInternal: true },
         { name: "Nardi Tec Sanitização", url: "https://narditec.lovable.app", icon: <Wind className="w-4 h-4" /> },
         { name: "Laboratorial", url: "/projects/laboratorial", icon: <FlaskConical className="w-4 h-4" />, isInternal: true },
+        { name: "BIOTEC Cogumelos", url: "/projects/biotec-cogumelos", icon: <FlaskConical className="w-4 h-4" />, isInternal: true },
         { name: "HUGH Shesau (Biotec)", url: "/projects/hugh-shesau", icon: <Dna className="w-4 h-4" />, isInternal: true },
       ]
     },
@@ -169,6 +170,7 @@ export default function Home() {
       icon: <GraduationCap className="w-6 h-6 text-[#00ffe0]" />,
       items: [
         { name: "HUGH Edwin EBERS Smith", url: "/projects/hugh-edwin", icon: <GraduationCap className="w-4 h-4" />, isInternal: true },
+        { name: "Instituto Galenus", url: "/projects/instituto-galenus", icon: <BookOpen className="w-4 h-4" />, isInternal: true },
         { name: "Garage Tec (Incubadora)", url: "/projects/garage-tec", icon: <Lightbulb className="w-4 h-4" />, isInternal: true },
       ]
     },
@@ -198,6 +200,8 @@ export default function Home() {
         { name: "Arctecturus (P. Futuros)", url: "/projects/arctecturus", icon: <Building className="w-4 h-4" />, isInternal: true },
         { name: "ArcTec (Design Inteligente)", url: "/projects/arctec", icon: <Cpu className="w-4 h-4" />, isInternal: true },
         { name: "Hangar Customs (Oficina)", url: "https://hangarcustoms.lovable.app", icon: <Car className="w-4 h-4" /> },
+        { name: "GEOBIO (Construção)", url: "/projects/geobio", icon: <Building className="w-4 h-4" />, isInternal: true },
+        { name: "Neotropica Serpentário", url: "/projects/neotropica", icon: <Building2 className="w-4 h-4" />, isInternal: true },
         { name: "Aureon", url: "/projects/aureon", icon: <Rocket className="w-4 h-4" />, isInternal: true },
         { name: "Titan", url: "/projects/titan", icon: <Rocket className="w-4 h-4" />, isInternal: true },
         { name: "Horizon", url: "/projects/horizon", icon: <Rocket className="w-4 h-4" />, isInternal: true },
@@ -231,6 +235,7 @@ export default function Home() {
         { name: "Hangar Premium Motors", url: "/projects/hangar-premium", icon: <Car className="w-4 h-4" />, isInternal: true },
         { name: "Alazão Motors", url: "/projects/alazao-motors", icon: <Car className="w-4 h-4" />, isInternal: true },
         { name: "Purelinn Moda", url: "/projects/purelinn", icon: <Shirt className="w-4 h-4" />, isInternal: true },
+        { name: "Loja do Cobre", url: "/projects/loja-cobre", icon: <Store className="w-4 h-4" />, isInternal: true },
       ]
     },
     {
