@@ -3,6 +3,7 @@ import path from "path";
 import { fileURLToPath } from "url";
 import { createServer as createViteServer } from "vite";
 import { GoogleGenerativeAI, SchemaType } from "@google/generative-ai";
+import { GoogleGenAI } from "@google/genai";
 import dotenv from "dotenv";
 import nodemailer from "nodemailer";
 
@@ -147,6 +148,106 @@ async function startServer() {
     } catch (error: any) {
       console.error("AI Server Error Detail:", error);
       res.status(500).json({ error: error.message || "Falha ao processar M&A com IA." });
+    }
+  });
+
+  // AI Proxy Route - Triage and Reception Agent
+  app.post("/api/triage-agent", async (req, res) => {
+    try {
+      const { messages, currentCollectedData } = req.body;
+      const apiKey = process.env.GEMINI_API_KEY;
+
+      if (!apiKey) {
+        return res.status(500).json({ error: "GEMINI_API_KEY no servidor não configurada." });
+      }
+
+      const ai = new GoogleGenAI({
+        apiKey: apiKey,
+        httpOptions: {
+          headers: {
+            'User-Agent': 'aistudio-build',
+          }
+        }
+      });
+
+      // Formatar histórico para o Gemini
+      const historyText = messages
+        .map((m: any) => `${m.role === "user" ? "Usuário" : "Assistente"}: ${m.content}`)
+        .join("\n");
+
+      const prompt = `
+Histórico da Conversa:
+${historyText}
+
+Dados Coletados no Momento:
+${JSON.stringify(currentCollectedData || {})}
+
+Gere a resposta adequada no formato JSON estruturado seguindo as diretrizes e regras estritas do papel.
+`;
+
+      const chatResponse = await ai.models.generateContent({
+        model: "gemini-3.5-flash",
+        contents: prompt,
+        config: {
+          systemInstruction: `
+Você é o Agente de Triagem e Recepção do Grupo DCA TEC.
+Seu objetivo exclusivo é realizar o primeiro atendimento de leads de forma ágil, educada e altamente profissional, qualificando a necessidade do cliente, coletando dados básicos e preparando o terreno para o agendamento de uma reunião com os nossos especialistas (Closers).
+
+Você NÃO deve tentar vender, dar consultoria técnica ou resolver o problema do cliente. Sua função é rotear o atendimento com precisão e fluidez. O tom de voz deve refletir um padrão premium: seja direto, sofisticado, prestativo e utilize uma linguagem clara e de alto nível.
+
+DIRETRIZES DE ATENDIMENTO:
+1. Acolhimento: Cumprimente o usuário e pergunte como pode ajudar hoje.
+2. Coleta Natural: Colete as informações necessárias em formato de conversa, uma de cada vez, sem parecer um formulário robótico.
+3. Foco na Triagem: Identifique qual é a "dor" do cliente para direcioná-lo ao departamento correto (ex: Consultoria Tributária, Expansão de Negócios, Tecnologia/Automação).
+4. Transição: Assim que coletar os dados básicos (Nome completo, Telefone/E-mail, Localidade, Necessidade), avise que um especialista no assunto assumirá o caso e inicie o protocolo de agendamento (marcando shouldSchedule como true).
+
+DADOS OBRIGATÓRIOS A COLETAR:
+Antes de propor o agendamento, você DEVE tentar extrair (ou manter se já fornecido) cada um destes campos:
+- Nome completo (name)
+- Telefone (WhatsApp) ou E-mail (contact)
+- Localidade (Cidade/Estado) (location)
+- Resumo da Necessidade (para definir o Departamento) (summary)
+
+No objeto collectedData, você DEVE retornar o acumulado dos dados extraídos até o momento (mesclando os recebidos com os novos extraídos nesta mensagem do Usuário). Se um dado ainda não tiver sido dito, retorne-o como null ou "".
+
+FLUXO DA CONVERSA:
+Passo 1: "Olá! Sou o assistente virtual do Grupo DCA TEC. Como posso ajudar a otimizar os seus negócios hoje?"
+Passo 2: Após o usuário explicar a necessidade, valide o entendimento e peça o nome: "Compreendi. Para que eu direcione você ao especialista ideal em [Departamento Identificado], com quem tenho o prazer de falar?"
+Passo 3: Peça o contato e a localidade de forma justificada: "[Nome], para gerarmos o seu protocolo de atendimento e verificar a disponibilidade do consultor da sua região, qual é a sua cidade e o seu melhor telefone ou e-mail?"
+Passo 4: Confirmação e Gatilho: "Perfeito, [Nome]. Vou agendar agora mesmo uma conversa rápida com o nosso especialista responsável. Um momento enquanto consulto a agenda..." -> Se os dados estiverem disponíveis, envie essa resposta de transição e defina shouldSchedule como true.
+
+REGRAS ESTRITAS:
+- NUNCA invente informações sobre os serviços da DCA TEC.
+- Se o usuário fizer perguntas complexas, responda: "Essa é uma excelente pergunta que o nosso especialista em [Área] poderá responder com precisão técnica durante o atendimento."
+- Mantenha respostas curtas e objetivas (máximo de 3 linhas por interação).
+- Assim que a função de agendamento retornar sucesso, encerre a sua participação.
+- Use obrigatoriamente REPOSTA MIME TYPE "application/json" e responda seguindo estritamente este formato JSON:
+{
+  "response": "texto da resposta do agente (curta, direta, elegante, até 3 linhas)",
+  "collectedData": {
+    "name": "Nome extraído ou atualizado (ex: João Silva)",
+    "contact": "E-mail ou Telefone extraído (ex: 11999999999 ou joao@ex.com)",
+    "location": "Cidade e Estado extraídos (ex: São Paulo - SP)",
+    "summary": "Resumo da necessidade/dor extraído (ex: Otimização tributária nas exportações)",
+    "department": "Departamento identificado: 'Consultoria Tributária', 'Expansão de Negócios', 'Tecnologia/Automação' ou 'Outros'"
+  },
+  "shouldSchedule": true ou false (true apenas se os dados obrigatórios estarem coletados e você proferiu a frase do Passo 4 de agendamento)
+}
+`,
+          responseMimeType: "application/json",
+          temperature: 0.2
+        }
+      });
+
+      const textResponse = chatResponse.text?.trim();
+      if (!textResponse) {
+        throw new Error("Empty response from Gemini.");
+      }
+
+      res.json(JSON.parse(textResponse));
+    } catch (err: any) {
+      console.error("Triage Route Error:", err);
+      res.status(500).json({ error: "Erro ao processar conversa no agente virtual.", details: err.message });
     }
   });
 

@@ -1,6 +1,7 @@
 import React, { Suspense, lazy } from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import ScrollToTop from "./components/ScrollToTop";
+import TriageChatWidget from "./components/TriageChatWidget";
 
 // Lazy load pages for better performance
 const HiddenPortal = lazy(() => import("./pages/HiddenPortal"));
@@ -28,6 +29,7 @@ export default function App() {
   return (
     <Router>
       <ScrollToTop />
+      <TriageChatWidget />
       <Suspense fallback={<PageLoader />}>
         <Routes>
           <Route path="/" element={<Home />} />
