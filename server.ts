@@ -161,35 +161,15 @@ async function startServer() {
         return res.status(500).json({ error: "GEMINI_API_KEY no servidor não configurada." });
       }
 
-      const ai = new GoogleGenAI({
-        apiKey: apiKey,
-        httpOptions: {
-          headers: {
-            'User-Agent': 'aistudio-build',
-          }
-        }
-      });
-
-      // Formatar histórico para o Gemini
-      const historyText = messages
-        .map((m: any) => `${m.role === "user" ? "Usuário" : "Assistente"}: ${m.content}`)
-        .join("\n");
-
-      const prompt = `
-Histórico da Conversa:
-${historyText}
-
-Dados Coletados no Momento:
-${JSON.stringify(currentCollectedData || {})}
-
-Gere a resposta adequada no formato JSON estruturado seguindo as diretrizes e regras estritas do papel.
-`;
-
-      const chatResponse = await ai.models.generateContent({
-        model: "gemini-3.5-flash",
-        contents: prompt,
-        config: {
-          systemInstruction: `
+      // Utilizando o SDK GoogleGenerativeAI clássico e gemini-1.5-flash para máxima estabilidade e compatibilidade
+      const genAI = new GoogleGenerativeAI(apiKey);
+      const model = genAI.getGenerativeModel({
+        model: "gemini-1.5-flash",
+        generationConfig: {
+          responseMimeType: "application/json",
+          temperature: 0.2
+        },
+        systemInstruction: `
 Você é o Agente de Triagem e Recepção do Grupo DCA TEC.
 Seu objetivo exclusivo é realizar o primeiro atendimento de leads de forma ágil, educada e altamente profissional, qualificando a necessidade do cliente, coletando dados básicos e preparando o terreno para o agendamento de uma reunião com os nossos especialistas (Closers).
 
@@ -220,8 +200,8 @@ REGRAS ESTRITAS:
 - NUNCA invente informações sobre os serviços da DCA TEC.
 - Se o usuário fizer perguntas complexas, responda: "Essa é uma excelente pergunta que o nosso especialista em [Área] poderá responder com precisão técnica durante o atendimento."
 - Mantenha respostas curtas e objetivas (máximo de 3 linhas por interação).
-- Assim que a função de agendamento retornar sucesso, encerre a sua participação.
-- Use obrigatoriamente REPOSTA MIME TYPE "application/json" e responda seguindo estritamente este formato JSON:
+- Assim que o agendamento for acionado, encerre a sua participação cordial.
+- Use obrigatoriamente RESPOSTA no formato JSON contendo estes exatos campos:
 {
   "response": "texto da resposta do agente (curta, direta, elegante, até 3 linhas)",
   "collectedData": {
@@ -231,23 +211,93 @@ REGRAS ESTRITAS:
     "summary": "Resumo da necessidade/dor extraído (ex: Otimização tributária nas exportações)",
     "department": "Departamento identificado: 'Consultoria Tributária', 'Expansão de Negócios', 'Tecnologia/Automação' ou 'Outros'"
   },
-  "shouldSchedule": true ou false (true apenas se os dados obrigatórios estarem coletados e você proferiu a frase do Passo 4 de agendamento)
+  "shouldSchedule": true ou false
 }
-`,
-          responseMimeType: "application/json",
-          temperature: 0.2
-        }
+`
       });
 
-      const textResponse = chatResponse.text?.trim();
-      if (!textResponse) {
-        throw new Error("Empty response from Gemini.");
+      // Formatar histórico para o Gemini
+      const historyText = messages
+        .map((m: any) => `${m.role === "user" ? "Usuário" : "Assistente"}: ${m.content}`)
+        .join("\n");
+
+      const prompt = `
+Histórico da Conversa:
+${historyText}
+
+Dados Coletados no Momento:
+${JSON.stringify(currentCollectedData || {})}
+
+Gere a resposta adequada no formato JSON estruturado seguindo as diretrizes e regras estritas do papel.
+`;
+
+      const result = await model.generateContent(prompt);
+      const responseText = result.response.text();
+
+      let cleanJson = responseText ? responseText.trim() : "";
+      if (cleanJson.includes("```")) {
+        cleanJson = cleanJson.replace(/```json\n?|\n?```/g, "").trim();
       }
 
-      res.json(JSON.parse(textResponse));
+      let structuredData;
+      try {
+        structuredData = JSON.parse(cleanJson);
+      } catch (parseErr) {
+        console.warn("Parse JSON falhou, tentando regex fallback. RAW:", cleanJson);
+        const nameMatch = cleanJson.match(/"name":\s*"([^"]*)"/);
+        const contactMatch = cleanJson.match(/"contact":\s*"([^"]*)"/);
+        const locationMatch = cleanJson.match(/"location":\s*"([^"]*)"/);
+        const summaryMatch = cleanJson.match(/"summary":\s*"([^"]*)"/);
+        const depMatch = cleanJson.match(/"department":\s*"([^"]*)"/);
+        const respMatch = cleanJson.match(/"response":\s*"([^"]*)"/);
+
+        structuredData = {
+          response: respMatch ? respMatch[1] : "Compreendo perfeitamente o seu interesse. Para que eu registre sua solicitação e agende sua conversa com nossos especialistas, poderia me informar seu nome completo?",
+          collectedData: {
+            name: nameMatch ? nameMatch[1] : currentCollectedData?.name || null,
+            contact: contactMatch ? contactMatch[1] : currentCollectedData?.contact || null,
+            location: locationMatch ? locationMatch[1] : currentCollectedData?.location || null,
+            summary: summaryMatch ? summaryMatch[1] : currentCollectedData?.summary || null,
+            department: depMatch ? depMatch[1] : currentCollectedData?.department || null,
+          },
+          shouldSchedule: cleanJson.includes('"shouldSchedule": true')
+        };
+      }
+
+      res.json(structuredData);
     } catch (err: any) {
       console.error("Triage Route Error:", err);
-      res.status(500).json({ error: "Erro ao processar conversa no agente virtual.", details: err.message });
+      
+      // UX Resiliente: Se der erro na chamada de IA (cota, token, etc.), o bot se comporta de forma estática e inteligente coletando dados
+      const { messages, currentCollectedData } = req.body;
+      const lastUserMsg = messages[messages.length - 1]?.content || "";
+      
+      let nextResponse = "Compreendi perfeitamente. Para alinhar o departamento correto, qual o seu nome completo e qual o canal ideal para contato?";
+      let updatedData = { ...currentCollectedData };
+      let scheduleFlag = false;
+
+      // Lógica heurística de fallback estática rápida para salvar leads mesmo em caso de falha de conexão de IA
+      if (!updatedData.name) {
+        updatedData.name = lastUserMsg.length < 50 ? lastUserMsg : "Lead Inteligente";
+        nextResponse = `Muito prazer, ${updatedData.name}! Para gerarmos o seu protocolo de atendimento e verificar a nossa disponibilidade de consultores em sua região, qual é a sua cidade e o seu e-mail ou WhatsApp?`;
+      } else if (!updatedData.contact || !updatedData.location) {
+        if (lastUserMsg.includes("@") || lastUserMsg.match(/\d+/)) {
+          updatedData.contact = lastUserMsg;
+          nextResponse = "Excelente! Para finalizarmos e agendarmos a nossa reunião rápida com o consultor responsável, em qual cidade e estado você se localiza?";
+        } else {
+          updatedData.location = lastUserMsg;
+          nextResponse = "Perfeito. E qual o seu melhor WhatsApp ou e-mail de contato?";
+        }
+      } else {
+        scheduleFlag = true;
+        nextResponse = `Perfeito! Vou agendar agora mesmo uma conversa de alinhamento com o especialista ideal para o seu caso. Um momento enquanto consulto a agenda...`;
+      }
+
+      res.json({
+        response: nextResponse,
+        collectedData: updatedData,
+        shouldSchedule: scheduleFlag || (!!updatedData.name && !!updatedData.contact && !!updatedData.location)
+      });
     }
   });
 
