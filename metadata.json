@@ -1,5 +1,8 @@
 {
   "name": "DCA TEC",
   "description": "Innovation & Technology Group - Engenharia, Arquitetura, Ciência e Plataformas Digitais. Implementando protocolos Zero Trust e conformidade LGPD Nível Hard.",
-  "requestFramePermissions": []
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
 }

@@ -153,14 +153,92 @@ async function startServer() {
 
   // AI Proxy Route - Triage and Reception Agent
   app.post("/api/triage-agent", async (req, res) => {
-    try {
-      const { messages, currentCollectedData } = req.body;
-      const apiKey = process.env.GEMINI_API_KEY;
+    const { messages, currentCollectedData } = req.body;
+    const apiKey = process.env.GEMINI_API_KEY;
 
-      if (!apiKey) {
-        return res.status(500).json({ error: "GEMINI_API_KEY no servidor não configurada." });
+    // Função interna para o Fallback Determinístico Inteligente (Usado se não houver chave ou se a chamada da API do Gemini falhar)
+    const runFallbackAgent = () => {
+      const lastUserMsg = (messages[messages.length - 1]?.content || "").trim();
+      let updatedData = {
+        name: currentCollectedData?.name || null,
+        contact: currentCollectedData?.contact || null,
+        location: currentCollectedData?.location || null,
+        summary: currentCollectedData?.summary || null,
+        department: currentCollectedData?.department || null
+      };
+      
+      let nextResponse = "";
+      let scheduleFlag = false;
+
+      // 1. Coleta e classificação da dor / necessidade
+      if (!updatedData.summary) {
+        updatedData.summary = lastUserMsg;
+        
+        // Identificar Departamento com base no conteúdo
+        const contentLower = lastUserMsg.toLowerCase();
+        let dep = "Outros";
+        if (contentLower.includes("tribut") || contentLower.includes("imposto") || contentLower.includes("fiscal") || contentLower.includes("bi") || contentLower.includes("lucro")) {
+          dep = "Consultoria Tributária";
+        } else if (contentLower.includes("franquia") || contentLower.includes("expans") || contentLower.includes("negocio") || contentLower.includes("venda") || contentLower.includes("m&a")) {
+          dep = "Expansão de Negócios";
+        } else if (contentLower.includes("tecnolog") || contentLower.includes("sistem") || contentLower.includes("automat") || contentLower.includes("software") || contentLower.includes("computador") || contentLower.includes("site")) {
+          dep = "Tecnologia/Automação";
+        }
+        updatedData.department = dep;
+
+        nextResponse = `Compreendi perfeitamente sua necessidade relacionada a ${dep}. Para que eu possa direcionar você ao especialista ideal, com quem tenho o prazer de falar?`;
+      } 
+      // 2. Coleta de Nome
+      else if (!updatedData.name) {
+        updatedData.name = lastUserMsg;
+        nextResponse = `${updatedData.name}, para gerarmos o seu protocolo de atendimento e verificar a disponibilidade do consultor da sua região, qual é a sua cidade e o seu melhor telefone ou e-mail?`;
+      } 
+      // 3. Coleta de Contato e Localidade
+      else if (!updatedData.contact || !updatedData.location) {
+        // Tenta separar se ele enviou ambos (ex: "São Paulo, 11999999999")
+        if (lastUserMsg.includes(",") || lastUserMsg.includes("-") || lastUserMsg.includes("/")) {
+          const parts = lastUserMsg.split(/[,\-\/]/);
+          updatedData.location = parts[0].trim();
+          updatedData.contact = parts[1].trim();
+        } else {
+          // Se for e-mail ou número de telefone, preenche o contato
+          if (lastUserMsg.includes("@") || lastUserMsg.match(/\d{8,}/)) {
+            updatedData.contact = lastUserMsg;
+          } else {
+            updatedData.location = lastUserMsg;
+          }
+        }
+
+        // Se faltar um deles, pergunta especificamente
+        if (!updatedData.location) {
+          nextResponse = `Excelente, registrei seu contato. Qual é a sua cidade e estado para localizarmos o especialista ideal?`;
+        } else if (!updatedData.contact || updatedData.contact === "A coletar") {
+          nextResponse = `Entendido, você está em ${updatedData.location}. Qual é o seu e-mail ou telefone WhatsApp para contato direto?`;
+        } else {
+          scheduleFlag = true;
+          nextResponse = `Perfeito, ${updatedData.name}. Vou agendar agora mesmo uma conversa rápida com o nosso especialista em ${updatedData.department || "sua área de interesse"}. Um momento enquanto consulto a agenda...`;
+        }
+      } 
+      // 4. Fluxo final de Agendamento
+      else {
+        scheduleFlag = true;
+        nextResponse = `Perfeito, ${updatedData.name}. Vou agendar agora mesmo uma conversa rápida com o nosso especialista responsável. Um momento enquanto consulto a agenda...`;
       }
 
+      return {
+        response: nextResponse,
+        collectedData: updatedData,
+        shouldSchedule: scheduleFlag
+      };
+    };
+
+    // Caso não tenha a chave de API cadastrada, executa o assistente nativo de forma responsiva e transparente
+    if (!apiKey) {
+      console.warn("[TRIAGE] GEMINI_API_KEY não configurada. Executando assistente nativo Premium.");
+      return res.json(runFallbackAgent());
+    }
+
+    try {
       // Utilizando o SDK GoogleGenerativeAI clássico e gemini-1.5-flash para máxima estabilidade e compatibilidade
       const genAI = new GoogleGenerativeAI(apiKey);
       const model = genAI.getGenerativeModel({
@@ -252,52 +330,22 @@ Gere a resposta adequada no formato JSON estruturado seguindo as diretrizes e re
         const respMatch = cleanJson.match(/"response":\s*"([^"]*)"/);
 
         structuredData = {
-          response: respMatch ? respMatch[1] : "Compreendo perfeitamente o seu interesse. Para que eu registre sua solicitação e agende sua conversa com nossos especialistas, poderia me informar seu nome completo?",
+          response: respMatch ? respMatch[1] : `Compreendo perfeitamente o seu interesse. Para que eu registre sua solicitação, poderia me informar seu nome completo?`,
           collectedData: {
             name: nameMatch ? nameMatch[1] : currentCollectedData?.name || null,
             contact: contactMatch ? contactMatch[1] : currentCollectedData?.contact || null,
             location: locationMatch ? locationMatch[1] : currentCollectedData?.location || null,
             summary: summaryMatch ? summaryMatch[1] : currentCollectedData?.summary || null,
             department: depMatch ? depMatch[1] : currentCollectedData?.department || null,
-          },
+          }  ,
           shouldSchedule: cleanJson.includes('"shouldSchedule": true')
         };
       }
 
       res.json(structuredData);
     } catch (err: any) {
-      console.error("Triage Route Error:", err);
-      
-      // UX Resiliente: Se der erro na chamada de IA (cota, token, etc.), o bot se comporta de forma estática e inteligente coletando dados
-      const { messages, currentCollectedData } = req.body;
-      const lastUserMsg = messages[messages.length - 1]?.content || "";
-      
-      let nextResponse = "Compreendi perfeitamente. Para alinhar o departamento correto, qual o seu nome completo e qual o canal ideal para contato?";
-      let updatedData = { ...currentCollectedData };
-      let scheduleFlag = false;
-
-      // Lógica heurística de fallback estática rápida para salvar leads mesmo em caso de falha de conexão de IA
-      if (!updatedData.name) {
-        updatedData.name = lastUserMsg.length < 50 ? lastUserMsg : "Lead Inteligente";
-        nextResponse = `Muito prazer, ${updatedData.name}! Para gerarmos o seu protocolo de atendimento e verificar a nossa disponibilidade de consultores em sua região, qual é a sua cidade e o seu e-mail ou WhatsApp?`;
-      } else if (!updatedData.contact || !updatedData.location) {
-        if (lastUserMsg.includes("@") || lastUserMsg.match(/\d+/)) {
-          updatedData.contact = lastUserMsg;
-          nextResponse = "Excelente! Para finalizarmos e agendarmos a nossa reunião rápida com o consultor responsável, em qual cidade e estado você se localiza?";
-        } else {
-          updatedData.location = lastUserMsg;
-          nextResponse = "Perfeito. E qual o seu melhor WhatsApp ou e-mail de contato?";
-        }
-      } else {
-        scheduleFlag = true;
-        nextResponse = `Perfeito! Vou agendar agora mesmo uma conversa de alinhamento com o especialista ideal para o seu caso. Um momento enquanto consulto a agenda...`;
-      }
-
-      res.json({
-        response: nextResponse,
-        collectedData: updatedData,
-        shouldSchedule: scheduleFlag || (!!updatedData.name && !!updatedData.contact && !!updatedData.location)
-      });
+      console.error("Triage Route Error - falling back to native:", err);
+      res.json(runFallbackAgent());
     }
   });
 
