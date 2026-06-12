@@ -15,7 +15,7 @@ import {
   ShieldAlert
 } from "lucide-react";
 import { collection, addDoc, serverTimestamp } from "firebase/firestore";
-import { db } from "../lib/firebase";
+import { db, handleFirestoreError, OperationType } from "../lib/firebase";
 import { toast } from "react-hot-toast";
 
 interface Message {
@@ -183,7 +183,7 @@ export default function TriageChatWidget() {
         await addDoc(collection(db, "leads"), leadData);
       } catch (firestoreErr: any) {
         console.error("Erro ao gravar lead no Firestore:", firestoreErr);
-        throw new Error(`Falha no banco de dados (Firestore): ${firestoreErr?.message || firestoreErr}`);
+        handleFirestoreError(firestoreErr, OperationType.CREATE, "leads");
       }
 
       // 2. Disparar notificação por email para o Admin e para o Cliente
