@@ -129,19 +129,36 @@ export default function TriageChatWidget() {
 
     setIsLoading(true);
     try {
-      // 1. Salvar Lead no Firestore de acordo com as regras de validação estritas
+      // 1. Salvar Lead no Firestore de acordo com as regras de validação estritas de firestore.rules
       let finalEmail = "nao_informado@dca.com";
       let finalPhone = "Sem telefone";
 
       if (collectedData.contact) {
         const cleanedContact = collectedData.contact.trim();
-        if (cleanedContact.includes("@")) {
-          // Extrair apenas o e-mail se houver texto ao redor
-          const emailMatch = cleanedContact.match(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/);
-          finalEmail = emailMatch ? emailMatch[0] : "nao_informado@dca.com";
+        
+        // Extração de e-mail de forma robusta
+        const emailMatch = cleanedContact.match(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/);
+        if (emailMatch) {
+          finalEmail = emailMatch[0].trim();
+        }
+
+        // Remover o email para buscar o telefone sem ruídos
+        let phoneCandidate = cleanedContact;
+        if (emailMatch) {
+          phoneCandidate = phoneCandidate.replace(emailMatch[0], "");
+        }
+
+        // Buscar telefone (WhatsApp)
+        const phoneMatch = phoneCandidate.match(/(?:\+?55\s?)?(?:\(?\d{2}\)?\s?)?9?\d{4}[-.\s]?\d{4}/) ||
+                           phoneCandidate.match(/\d{8,15}/);
+        if (phoneMatch) {
+          finalPhone = phoneMatch[0].trim().substring(0, 20);
         } else {
-          // Limitar o telefone a 20 caracteres conforme regra (isValidLead: data.phone.size() <= 20)
-          finalPhone = cleanedContact.substring(0, 20);
+          // Fallback se não bater na regex mas sobrar texto que não seja e-mail
+          const remaining = phoneCandidate.replace(/[\s/|-]+/g, " ").trim();
+          if (remaining.length > 0 && !remaining.includes("@")) {
+            finalPhone = remaining.substring(0, 20);
+          }
         }
       }
 
@@ -162,7 +179,12 @@ export default function TriageChatWidget() {
         createdAt: serverTimestamp()
       };
 
-      await addDoc(collection(db, "leads"), leadData);
+      try {
+        await addDoc(collection(db, "leads"), leadData);
+      } catch (firestoreErr: any) {
+        console.error("Erro ao gravar lead no Firestore:", firestoreErr);
+        throw new Error(`Falha no banco de dados (Firestore): ${firestoreErr?.message || firestoreErr}`);
+      }
 
       // 2. Disparar notificação por email para o Admin e para o Cliente
       try {
@@ -191,9 +213,9 @@ export default function TriageChatWidget() {
       
       setMessages(prev => [...prev, { role: "model", content: confirmMsg }]);
       toast.success("Reunião agendada! Confirmação enviada e lead salvo.");
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
-      toast.error("Falha ao salvar agendamento.");
+      toast.error(`Falha ao salvar agendamento: ${err?.message || err}`);
     } finally {
       setIsLoading(false);
     }

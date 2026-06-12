@@ -1,5 +1,6 @@
 import React, { Suspense, lazy } from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { Toaster } from "react-hot-toast";
 import ScrollToTop from "./components/ScrollToTop";
 import TriageChatWidget from "./components/TriageChatWidget";
 
@@ -29,6 +30,7 @@ export default function App() {
   return (
     <Router>
       <ScrollToTop />
+      <Toaster position="top-right" toastOptions={{ duration: 4000 }} />
       <TriageChatWidget />
       <Suspense fallback={<PageLoader />}>
         <Routes>
