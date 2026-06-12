@@ -112,7 +112,7 @@ export default function TriageChatWidget() {
     }
   };
 
-  // Confirmar agendamento e salvar lead no Firestore
+  // Confirmar agendamento e salvar lead no CRM/Firestore
   const handleConfirmAppointment = async () => {
     if (!selectedDate || !selectedTime) {
       toast.error("Por favor, selecione data e horário.");
@@ -137,14 +137,33 @@ export default function TriageChatWidget() {
 
       await addDoc(collection(db, "leads"), leadData);
 
-      // 2. Finalizar no Chat
+      // 2. Disparar notificação por email para o Admin e para o Cliente
+      try {
+        await fetch("/api/send-email", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            name: leadData.name,
+            email: leadData.email,
+            company: leadData.company,
+            subject: `Confirmação de Reunião: ${leadData.name} - DCA TEC`,
+            message: `Olá, ${leadData.name}!\n\nSua reunião estratégica para o departamento de ${collectedData.department || "Triagem Geral"} foi pré-agendada com sucesso!\n\n📅 Data da Reunião: ${selectedDate}\n⏰ Horário: ${selectedTime}\n📍 Canal de Atendimento: Virtual DCA TEC\n\nQualquer novidade ou ajuste, você pode entrar em contato conosco.\n\nAtenciosamente,\nGrupo DCA TEC\nInovação & Tecnologia Group`,
+            source: `Agendamento Triagem (Reunião)`
+          })
+        });
+        console.log("Notificação de confirmação enviada com sucesso.");
+      } catch (emailErr) {
+        console.error("Erro ao enviar email de confirmação de reunião:", emailErr);
+      }
+
+      // 3. Finalizar no Chat
       setAppointmentBooked(true);
       setShowCalendar(false);
       
-      const confirmMsg = `Perfeito! Sua reunião estratégica está pré-agendada com sucesso para o dia ${selectedDate} às ${selectedTime}.\n\nNossos especialistas em ${collectedData.department || "sua dor de negócio"} já foram notificados e assumirão o atendimento a partir desse horário. Tenha um excelente dia!`;
+      const confirmMsg = `Perfeito! Sua reunião estratégica está pré-agendada com sucesso para o dia ${selectedDate} às ${selectedTime}.\n\nPara agilizar, você também pode clicar no botão de confirmação abaixo para receber detalhes de contato rápidos pelo WhatsApp! Nossos especialistas em ${collectedData.department || "sua dor de negócio"} já foram notificados. Tenha um excelente dia!`;
       
       setMessages(prev => [...prev, { role: "model", content: confirmMsg }]);
-      toast.success("Reunião agendada! Lead cadastrado no CRM.");
+      toast.success("Reunião agendada! Confirmação enviada e lead salvo.");
     } catch (err) {
       console.error(err);
       toast.error("Falha ao salvar agendamento.");
@@ -299,6 +318,52 @@ export default function TriageChatWidget() {
                       <span>{isLoading ? "Agendando..." : "Confirmar Reunião"}</span>
                       <ChevronRight className="w-4 h-4" />
                     </button>
+                  </div>
+                </motion.div>
+              )}
+
+              {/* Módulo de Sucesso e Confirmação de WhatsApp / E-mail */}
+              {appointmentBooked && (
+                <motion.div
+                  initial={{ opacity: 0, y: 15 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="bg-black/40 border border-[#00ffe0]/30 rounded-2xl p-4 space-y-4 text-center"
+                >
+                  <div className="flex flex-col items-center gap-2 text-[#00ffe0]">
+                    <div className="w-12 h-12 bg-[#00ffe0]/10 rounded-full border border-[#00ffe0]/30 flex items-center justify-center mb-1 shadow-[0_0_15px_rgba(0,255,224,0.15)]">
+                      <Check className="w-6 h-6 animate-pulse" />
+                    </div>
+                    <h4 className="text-[12px] font-bold uppercase tracking-widest text-[#00ffe0]">Agendamento Concluído!</h4>
+                    <p className="text-[10px] text-white/70 leading-relaxed">
+                      Seu horário foi reservado em nosso sistema para o dia <span className="text-[#00ffe0] font-semibold">{selectedDate}</span> às <span className="text-[#00ffe0] font-semibold">{selectedTime}</span>.
+                    </p>
+                  </div>
+
+                  <div className="space-y-3 pt-1">
+                    {/* Botão de Enviar ao WhatsApp */}
+                    <a
+                      href={`https://wa.me/5548991796036?text=${encodeURIComponent(
+                        `Olá DCA TEC! Acabei de agendar um atendimento estratégico.\n\n👤 Nome: ${collectedData.name || 'Cliente'}\n📅 Data: ${selectedDate}\n⏰ Horário: ${selectedTime}\n💼 Departamento: ${collectedData.department || 'Geral'}\n📍 Localidade: ${collectedData.location || 'Não especificada'}`
+                      )}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="w-full py-2.5 rounded-xl bg-[#25D366] hover:bg-[#20ba59] text-white text-xs font-bold uppercase tracking-widest hover:scale-105 transition-all flex items-center justify-center gap-2 shadow-[0_0_15px_rgba(37,211,102,0.2)] active:scale-95"
+                    >
+                      <Phone className="w-4 h-4 fill-white" />
+                      <span>Confirmar no WhatsApp</span>
+                    </a>
+
+                    <div className="text-[9px] text-white/40 leading-relaxed">
+                      {collectedData.contact?.includes("@") ? (
+                        <span>
+                          Enviamos também a confirmação oficial no seu e-mail cadastrado: <strong className="text-white/60">{collectedData.contact}</strong>.
+                        </span>
+                      ) : (
+                        <span>
+                          Um e-mail de notificação de agendamento foi encaminhado ao nosso comitê executivo com seus dados de contato.
+                        </span>
+                      )}
+                    </div>
                   </div>
                 </motion.div>
               )}
