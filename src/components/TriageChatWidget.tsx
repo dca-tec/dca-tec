@@ -188,7 +188,7 @@ export default function TriageChatWidget() {
 
       // 2. Disparar notificação por email para o Admin e para o Cliente
       try {
-        await fetch("/api/send-email", {
+        const emailRes = await fetch("/api/send-email", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -200,9 +200,15 @@ export default function TriageChatWidget() {
             source: `Agendamento Triagem (Reunião)`
           })
         });
+
+        if (!emailRes.ok) {
+          const errData = await emailRes.json().catch(() => ({}));
+          throw new Error(errData.error || errData.details || `Código ${emailRes.status}`);
+        }
         console.log("Notificação de confirmação enviada com sucesso.");
-      } catch (emailErr) {
+      } catch (emailErr: any) {
         console.error("Erro ao enviar email de confirmação de reunião:", emailErr);
+        toast.error(`Aviso: Não foi possível enviar a confirmação por e-mail (${emailErr.message || emailErr}).`);
       }
 
       // 3. Finalizar no Chat

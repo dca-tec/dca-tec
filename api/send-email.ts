@@ -32,13 +32,33 @@ export default async function handler(
       }
     });
 
+    const isClientTarget = source?.includes('Proposta') || source?.includes('Agendamento') || source?.includes('Triagem') || source?.includes('Reunião');
+    const recipientList: string[] = [];
+
+    // Priorizar e adicionar o e-mail de destino administrativo
+    if (process.env.EMAIL_TO) {
+      recipientList.push(process.env.EMAIL_TO);
+    }
+
+    // Se a origem pede notificação ao cliente de forma prioritária, e o e-mail for válido
+    if (isClientTarget && email && email !== "nao_informado@dca.com" && email.includes('@')) {
+      recipientList.push(email);
+    }
+
+    // Fallback absoluto se a lista estiver vazia
+    if (recipientList.length === 0 && process.env.SMTP_USER) {
+      recipientList.push(process.env.SMTP_USER);
+    }
+
+    const toField = recipientList.join(', ');
+
     const mailOptions = {
       from: `"DCA TEC" <${process.env.SMTP_USER}>`,
-      to: source.includes('Proposta') ? email : process.env.EMAIL_TO,
+      to: toField,
       subject: subject || `Novo Lead: ${name} - ${source}`,
       html: `
         <div style="font-family: sans-serif; padding: 20px; color: #333; border: 2px solid #00ffe0; border-radius: 12px; max-width: 600px;">
-          <h2 style="color: #00ffe0; margin-top: 0;">${source.includes('Proposta') ? '📄 Proposta Comercial' : '🚀 Novo Lead Recebido'}</h2>
+          <h2 style="color: #00ffe0; margin-top: 0;">${isClientTarget ? '📅 Confirmação / Proposta' : '🚀 Novo Lead Recebido'}</h2>
           <p><strong>Nome:</strong> ${name}</p>
           <p><strong>E-mail:</strong> ${email}</p>
           ${company ? `<p><strong>Empresa/CNPJ:</strong> ${company}</p>` : ''}
