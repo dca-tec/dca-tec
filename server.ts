@@ -176,6 +176,8 @@ async function startServer() {
     // Função interna para o Fallback Determinístico Inteligente (Usado se não houver chave ou se a chamada da API do Gemini falhar)
     const runFallbackAgent = () => {
       const lastUserMsg = (messages[messages.length - 1]?.content || "").trim();
+      const contentLower = lastUserMsg.toLowerCase();
+
       let updatedData = {
         name: currentCollectedData?.name || null,
         contact: currentCollectedData?.contact || null,
@@ -183,63 +185,108 @@ async function startServer() {
         summary: currentCollectedData?.summary || null,
         department: currentCollectedData?.department || null
       };
+
+      // --- EXTRAÇÃO INTELIGENTE MULTI-FATOR ---
+      
+      // 1. Extração de Email
+      const emailMatch = lastUserMsg.match(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/);
+      if (emailMatch) {
+        const foundEmail = emailMatch[0].trim();
+        if (!updatedData.contact) {
+          updatedData.contact = foundEmail;
+        } else if (!updatedData.contact.includes(foundEmail)) {
+          updatedData.contact = `${updatedData.contact} / ${foundEmail}`;
+        }
+      }
+
+      // 2. Extração de Telefone
+      const phoneCandidates = lastUserMsg.match(/(?:\+?55\s?)?(?:\(?\d{2}\)?\s?)?9?\d{4}[-.\s]?\d{4}/g);
+      if (phoneCandidates) {
+        const validPhones = phoneCandidates.filter(p => p.replace(/\D/g, '').length >= 8);
+        if (validPhones.length > 0) {
+          const foundPhone = validPhones[0].trim();
+          if (!updatedData.contact) {
+            updatedData.contact = foundPhone;
+          } else if (!updatedData.contact.includes(foundPhone)) {
+            updatedData.contact = `${foundPhone} / ${updatedData.contact}`;
+          }
+        }
+      }
+
+      // 3. Extração de Nome
+      let matchedName = "";
+      const nameMatch = lastUserMsg.match(/meu nome [ée]\s+([A-Za-zÀ-ÖØ-öø-ÿ\s]+)/i) || 
+                        lastUserMsg.match(/me chamo\s+([A-Za-zÀ-ÖØ-öø-ÿ\s]+)/i) ||
+                        lastUserMsg.match(/sou o\s+([A-Za-zÀ-ÖØ-öø-ÿ\s]+)/i) ||
+                        lastUserMsg.match(/sou a\s+([A-Za-zÀ-ÖØ-öø-ÿ\s]+)/i);
+      if (nameMatch && nameMatch[1]) {
+        matchedName = nameMatch[1].split(/(\ssou\s|\sde\s|\sem\s|\scom\s|\se\s|\sgostaria\s|\semail\s|\scontato\s|,|\.)/i)[0].trim();
+        if (matchedName.length > 1) {
+          updatedData.name = matchedName.replace(/\b\w/g, c => c.toUpperCase());
+        }
+      }
+
+      // 4. Extração de Localidade (Cidade/Estado)
+      let matchedLocation = "";
+      const locMatch = lastUserMsg.match(/sou de\s+([A-Za-zÀ-ÖØ-öø-ÿ\s,-]+)/i) ||
+                       lastUserMsg.match(/estou em\s+([A-Za-zÀ-ÖØ-öø-ÿ\s,-]+)/i) ||
+                       lastUserMsg.match(/moro em\s+([A-Za-zÀ-ÖØ-öø-ÿ\s,-]+)/i) ||
+                       lastUserMsg.match(/falo de\s+([A-Za-zÀ-ÖØ-öø-ÿ\s,-]+)/i) ||
+                       lastUserMsg.match(/falando de\s+([A-Za-zÀ-ÖØ-öø-ÿ\s,-]+)/i);
+      if (locMatch && locMatch[1]) {
+        matchedLocation = locMatch[1].split(/(\sgostaria\s|\se\s|\semail\s|\scontato\s|\smeu\s|e-mail|,|\.)/i)[0].trim();
+        if (matchedLocation.length > 1) {
+          updatedData.location = matchedLocation.replace(/\b\w/g, c => c.toUpperCase());
+        }
+      }
+
+      // Adicional: se a mensagem conter termos de cidades chave diretamente e não identificamos localidade
+      if (!updatedData.location) {
+        const floripaMatch = lastUserMsg.match(/florianopolis|floripa|sao paulo|são paulo|rio de janeiro|curitiba|porto alegre|belo horizonte/i);
+        if (floripaMatch) {
+          updatedData.location = floripaMatch[0].replace(/\b\w/g, c => c.toUpperCase());
+        }
+      }
+
+      // 5. Extração de Necessidade e Classificação de Departamento
+      let dep = updatedData.department || "Outros";
+      let summaryText = updatedData.summary;
+
+      if (contentLower.includes("tribut") || contentLower.includes("imposto") || contentLower.includes("fiscal") || contentLower.includes("bi") || contentLower.includes("lucro") || contentLower.includes("recupera")) {
+        dep = "Consultoria Tributária";
+        summaryText = "Recuperação fiscal e tributária";
+      } else if (contentLower.includes("franquia") || contentLower.includes("expans") || contentLower.includes("negoc") || contentLower.includes("venda") || contentLower.includes("m&a") || contentLower.includes("invest")) {
+        dep = "Expansão de Negócios";
+        summaryText = "Expansão comercial, M&A ou franquias";
+      } else if (contentLower.includes("tecnolog") || contentLower.includes("sistem") || contentLower.includes("automat") || contentLower.includes("software") || contentLower.includes("computador") || contentLower.includes("site") || contentLower.includes("app")) {
+        dep = "Tecnologia/Automação";
+        summaryText = "Desenvolvimento de software e automação tecnológica";
+      }
+
+      if (!updatedData.summary) {
+        updatedData.summary = summaryText || (lastUserMsg.length > 100 ? lastUserMsg.substring(0, 97) + "..." : lastUserMsg);
+      }
+      updatedData.department = dep;
+
+      // Se ainda não identificamos o nome, mas o usuário mandou um texto curto de introdução
+      if (!updatedData.name && lastUserMsg.split(/\s+/).length <= 2 && !contentLower.includes("ola") && !contentLower.includes("olá") && !emailMatch && !phoneCandidates) {
+        updatedData.name = lastUserMsg.replace(/\b\w/g, c => c.toUpperCase());
+      }
+
+      // --- DETERMINAÇÃO DO PRÓXIMO PASSO DE FORMA HUMANIZADA ---
       
       let nextResponse = "";
       let scheduleFlag = false;
 
-      // 1. Coleta e classificação da dor / necessidade
-      if (!updatedData.summary) {
-        updatedData.summary = lastUserMsg;
-        
-        // Identificar Departamento com base no conteúdo
-        const contentLower = lastUserMsg.toLowerCase();
-        let dep = "Outros";
-        if (contentLower.includes("tribut") || contentLower.includes("imposto") || contentLower.includes("fiscal") || contentLower.includes("bi") || contentLower.includes("lucro")) {
-          dep = "Consultoria Tributária";
-        } else if (contentLower.includes("franquia") || contentLower.includes("expans") || contentLower.includes("negocio") || contentLower.includes("venda") || contentLower.includes("m&a")) {
-          dep = "Expansão de Negócios";
-        } else if (contentLower.includes("tecnolog") || contentLower.includes("sistem") || contentLower.includes("automat") || contentLower.includes("software") || contentLower.includes("computador") || contentLower.includes("site")) {
-          dep = "Tecnologia/Automação";
-        }
-        updatedData.department = dep;
-
-        nextResponse = `Compreendi perfeitamente sua necessidade relacionada a ${dep}. Para que eu possa direcionar você ao especialista ideal, com quem tenho o prazer de falar?`;
-      } 
-      // 2. Coleta de Nome
-      else if (!updatedData.name) {
-        updatedData.name = lastUserMsg;
-        nextResponse = `${updatedData.name}, para gerarmos o seu protocolo de atendimento e verificar a disponibilidade do consultor da sua região, qual é a sua cidade e o seu melhor telefone ou e-mail?`;
-      } 
-      // 3. Coleta de Contato e Localidade
-      else if (!updatedData.contact || !updatedData.location) {
-        // Tenta separar se ele enviou ambos (ex: "São Paulo, 11999999999")
-        if (lastUserMsg.includes(",") || lastUserMsg.includes("-") || lastUserMsg.includes("/")) {
-          const parts = lastUserMsg.split(/[,\-\/]/);
-          updatedData.location = parts[0].trim();
-          updatedData.contact = parts[1].trim();
-        } else {
-          // Se for e-mail ou número de telefone, preenche o contato
-          if (lastUserMsg.includes("@") || lastUserMsg.match(/\d{8,}/)) {
-            updatedData.contact = lastUserMsg;
-          } else {
-            updatedData.location = lastUserMsg;
-          }
-        }
-
-        // Se faltar um deles, pergunta especificamente
-        if (!updatedData.location) {
-          nextResponse = `Excelente, registrei seu contato. Qual é a sua cidade e estado para localizarmos o especialista ideal?`;
-        } else if (!updatedData.contact || updatedData.contact === "A coletar") {
-          nextResponse = `Entendido, você está em ${updatedData.location}. Qual é o seu e-mail ou telefone WhatsApp para contato direto?`;
-        } else {
-          scheduleFlag = true;
-          nextResponse = `Perfeito, ${updatedData.name}. Vou agendar agora mesmo uma conversa rápida com o nosso especialista em ${updatedData.department || "sua área de interesse"}. Um momento enquanto consulto a agenda...`;
-        }
-      } 
-      // 4. Fluxo final de Agendamento
-      else {
+      if (!updatedData.name) {
+        nextResponse = `Compreendi perfeitamente sua necessidade sobre ${updatedData.department || "nossas soluções corporativas"}. Para que eu possa direcionar você ao especialista ideal, com quem tenho o prazer de falar?`;
+      } else if (!updatedData.contact) {
+        nextResponse = `Muito prazer, ${updatedData.name}! Para agendarmos sua reunião técnica e enviar as confirmações por WhatsApp e e-mail, qual é o seu melhor e-mail ou telefone para contato direto?`;
+      } else if (!updatedData.location) {
+        nextResponse = `Certo, ${updatedData.name}! Registrei seu contato (${updatedData.contact}). De qual cidade e estado você fala para localizarmos o especialista ideal de sua região?`;
+      } else {
         scheduleFlag = true;
-        nextResponse = `Perfeito, ${updatedData.name}. Vou agendar agora mesmo uma conversa rápida com o nosso especialista responsável. Um momento enquanto consulto a agenda...`;
+        nextResponse = `Excelente, ${updatedData.name}! Registrei todos os seus dados com êxito:\n📍 Localidade: ${updatedData.location}\n📞 Contato: ${updatedData.contact}\n💼 Área: ${updatedData.department}\n\nVou abrir o calendário para pré-agendarmos a sua reunião estratégica agora mesmo. Por favor, selecione abaixo a data e horário da sua preferência:`;
       }
 
       return {
@@ -266,45 +313,41 @@ async function startServer() {
         },
         systemInstruction: `
 Você é o Agente de Triagem e Recepção do Grupo DCA TEC.
-Seu objetivo exclusivo é realizar o primeiro atendimento de leads de forma ágil, educada e altamente profissional, qualificando a necessidade do cliente, coletando dados básicos e preparando o terreno para o agendamento de uma reunião com os nossos especialistas (Closers).
+Seu objetivo exclusivo é realizar o primeiro atendimento de leads de forma ágile, educada e altamente profissional, qualificando a necessidade do cliente, coletando dados básicos e preparando o terreno para o agendamento de uma reunião com os nossos especialistas (Closers).
 
 Você NÃO deve tentar vender, dar consultoria técnica ou resolver o problema do cliente. Sua função é rotear o atendimento com precisão e fluidez. O tom de voz deve refletir um padrão premium: seja direto, sofisticado, prestativo e utilize uma linguagem clara e de alto nível.
 
 DIRETRIZES DE ATENDIMENTO:
-1. Acolhimento: Cumprimente o usuário e pergunte como pode ajudar hoje.
-2. Coleta Natural: Colete as informações necessárias em formato de conversa, uma de cada vez, sem parecer um formulário robótico.
+1. Acolhimento: Cumprimente o usuário de forma calorosa e corporativa, perguntando como pode ajudar.
+2. Coleta Natural e Humana: Se o cliente enviar múltiplos dados de uma vez (como nome, contatos, localidade e necessidades), registre todos imediatamente no objeto 'collectedData' e avance no fluxo. NUNCA pergunte sobre algo que o cliente já informou! Seja extremamente inteligente na recepção.
 3. Foco na Triagem: Identifique qual é a "dor" do cliente para direcioná-lo ao departamento correto (ex: Consultoria Tributária, Expansão de Negócios, Tecnologia/Automação).
-4. Transição: Assim que coletar os dados básicos (Nome completo, Telefone/E-mail, Localidade, Necessidade), avise que um especialista no assunto assumirá o caso e inicie o protocolo de agendamento (marcando shouldSchedule como true).
+4. Transição: Assim que coletar todos os dados básicos disponíveis ou deduzíveis de forma integrada (Nome completo, Telefone/E-mail, Localidade, Necessidade), avise amigavelmente que vai abrir a agenda virtual para que ele escolha sua data, configurando 'shouldSchedule' como true.
 
 DADOS OBRIGATÓRIOS A COLETAR:
-Antes de propor o agendamento, você DEVE tentar extrair (ou manter se já fornecido) cada um destes campos:
+Antes de propor o agendamento, você DEVE extrair (ou manter se já fornecido) cada um deste campos de forma inteligente:
 - Nome completo (name)
 - Telefone (WhatsApp) ou E-mail (contact)
 - Localidade (Cidade/Estado) (location)
 - Resumo da Necessidade (para definir o Departamento) (summary)
 
-No objeto collectedData, você DEVE retornar o acumulado dos dados extraídos até o momento (mesclando os recebidos com os novos extraídos nesta mensagem do Usuário). Se um dado ainda não tiver sido dito, retorne-o como null ou "".
+No objeto collectedData, retorne o consolidado dos dados extraídos até o momento (mesclando os recebidos com os novos extraídos). Se um dado ainda for desconhecido, retorne-o como null ou "".
 
 FLUXO DA CONVERSA:
-Passo 1: "Olá! Sou o assistente virtual do Grupo DCA TEC. Como posso ajudar a otimizar os seus negócios hoje?"
-Passo 2: Após o usuário explicar a necessidade, valide o entendimento e peça o nome: "Compreendi. Para que eu direcione você ao especialista ideal em [Departamento Identificado], com quem tenho o prazer de falar?"
-Passo 3: Peça o contato e a localidade de forma justificada: "[Nome], para gerarmos o seu protocolo de atendimento e verificar a disponibilidade do consultor da sua região, qual é a sua cidade e o seu melhor telefone ou e-mail?"
-Passo 4: Confirmação e Gatilho: "Perfeito, [Nome]. Vou agendar agora mesmo uma conversa rápida com o nosso especialista responsável. Um momento enquanto consulto a agenda..." -> Se os dados estiverem disponíveis, envie essa resposta de transição e defina shouldSchedule como true.
+- Se o usuário já iniciou informando os dados (Ex: "Meu nome é Diego, falo de Florianópolis, contato 48..."): responda validando as informações recebidas e diga que vai abrir a agenda para que ele selecione data/horário da reunião de confirmação, definindo 'shouldSchedule' como true.
+- Se o usuário forneceu apenas partes: responda de forma muito natural e educada, agradecendo as partes informadas e solicitando especificamente o que falta (como email/whatsapp ou localidade), sem repetir perguntas de dados que já possui.
 
 REGRAS ESTRITAS:
-- NUNCA invente informações sobre os serviços da DCA TEC.
-- Se o usuário fizer perguntas complexas, responda: "Essa é uma excelente pergunta que o nosso especialista em [Área] poderá responder com precisão técnica durante o atendimento."
-- Mantenha respostas curtas e objetivas (máximo de 3 linhas por interação).
-- Assim que o agendamento for acionado, encerre a sua participação cordial.
+- Se o usuário fizer perguntas técnicas ou complexas, responda: "Excelente pergunta! Nosso consultor especializado da área poderá detalhar isso para você logo no início do nosso atendimento virtual especial."
+- Mantenha respostas curtas e humanas (máximo de 3-4 linhas por interação).
 - Use obrigatoriamente RESPOSTA no formato JSON contendo estes exatos campos:
 {
-  "response": "texto da resposta do agente (curta, direta, elegante, até 3 linhas)",
+  "response": "sua resposta curta, refinada, super humanizada e educada de transição",
   "collectedData": {
     "name": "Nome extraído ou atualizado (ex: João Silva)",
     "contact": "E-mail ou Telefone extraído (ex: 11999999999 ou joao@ex.com)",
     "location": "Cidade e Estado extraídos (ex: São Paulo - SP)",
     "summary": "Resumo da necessidade/dor extraído (ex: Otimização tributária nas exportações)",
-    "department": "Departamento identificado: 'Consultoria Tributária', 'Expansão de Negócios', 'Tecnologia/Automação' ou 'Outros'"
+    "department": "Departamento: 'Consultoria Tributária', 'Expansão de Negócios', 'Tecnologia/Automação' ou 'Outros'"
   },
   "shouldSchedule": true ou false
 }
