@@ -53,6 +53,46 @@ export default function TriageChatWidget() {
   const [selectedDate, setSelectedDate] = useState("");
   const [selectedTime, setSelectedTime] = useState("");
   const [appointmentBooked, setAppointmentBooked] = useState(false);
+  const [useCustomDate, setUseCustomDate] = useState(false);
+
+  // Obter próximos 5 dias úteis com formatação totalmente determinística
+  const getNextBusinessDays = () => {
+    const days = [];
+    const date = new Date();
+    
+    // Se for depois das 17h, começa a contar a partir de amanhã
+    if (date.getHours() >= 17) {
+      date.setDate(date.getDate() + 1);
+    }
+
+    const weekdays = ["DOM", "SEG", "TER", "QUA", "QUI", "SEX", "SÁB"];
+    let count = 0;
+    while (count < 5) {
+      const dayOfWeek = date.getDay();
+      if (dayOfWeek !== 0 && dayOfWeek !== 6) { // Pula sábado e domingo
+        const yyyy = date.getFullYear();
+        const mm = String(date.getMonth() + 1).padStart(2, "0");
+        const dd = String(date.getDate()).padStart(2, "0");
+        const value = `${yyyy}-${mm}-${dd}`;
+        
+        const weekdayStr = weekdays[dayOfWeek];
+        const dayMonthStr = `${dd}/${mm}`;
+        days.push({ value, weekday: weekdayStr, dayMonth: dayMonthStr });
+        count++;
+      }
+      date.setDate(date.getDate() + 1);
+    }
+    return days;
+  };
+
+  const availableDates = getNextBusinessDays();
+
+  // Auto-selecionar o primeiro dia útil disponível quando o agendamento for exibido
+  useEffect(() => {
+    if (showCalendar && !selectedDate && availableDates.length > 0) {
+      setSelectedDate(availableDates[0].value);
+    }
+  }, [showCalendar]);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -345,14 +385,51 @@ export default function TriageChatWidget() {
                   
                   <div className="space-y-3">
                     <div>
-                      <label className="text-[9px] uppercase tracking-wider text-white/40 block mb-1">Escolha o Dia</label>
-                      <input 
-                        type="date" 
-                        value={selectedDate}
-                        onChange={(e) => setSelectedDate(e.target.value)}
-                        min={new Date().toISOString().split('T')[0]}
-                        className="w-full bg-[#0d0d0d] border border-white/10 rounded-xl px-3 py-2 text-xs text-white outline-none focus:border-[#00ffe0]"
-                      />
+                      <div className="flex justify-between items-center mb-1">
+                        <label className="text-[9px] uppercase tracking-wider text-white/40 block">Escolha o Dia</label>
+                        <button 
+                          type="button"
+                          onClick={() => setUseCustomDate(!useCustomDate)}
+                          className="text-[9px] font-bold text-[#00ffe0] hover:underline transition-all"
+                        >
+                          {useCustomDate ? "Usar Dias Rápidos" : "Outra data..."}
+                        </button>
+                      </div>
+                      
+                      {useCustomDate ? (
+                        <input 
+                          type="date" 
+                          value={selectedDate}
+                          onChange={(e) => setSelectedDate(e.target.value)}
+                          min={new Date().toISOString().split('T')[0]}
+                          className="w-full bg-[#0d0d0d] border border-white/10 rounded-xl px-3 py-2 text-xs text-white outline-none focus:border-[#00ffe0] transition-all"
+                        />
+                      ) : (
+                        <div className="grid grid-cols-5 gap-1.5">
+                          {availableDates.map((day) => {
+                            const isSelected = selectedDate === day.value;
+                            return (
+                              <button
+                                key={day.value}
+                                type="button"
+                                onClick={() => setSelectedDate(day.value)}
+                                className={`py-1.5 rounded-xl border flex flex-col items-center justify-center transition-all duration-200 ${
+                                  isSelected
+                                    ? "bg-[#00ffe0] text-black border-[#00ffe0] shadow-[0_0_12px_rgba(0,255,224,0.3)] scale-105 font-bold"
+                                    : "bg-black/40 text-white/60 border-white/5 hover:border-[#00ffe0]/30 hover:text-[#00ffe0]"
+                                }`}
+                              >
+                                <span className={`text-[7px] tracking-wider block mb-0.5 ${isSelected ? "text-black/70 font-semibold" : "text-white/40"}`}>
+                                  {day.weekday}
+                                </span>
+                                <span className="text-[10px] font-black">
+                                  {day.dayMonth}
+                                </span>
+                              </button>
+                            );
+                          })}
+                        </div>
+                      )}
                     </div>
                     
                     <div>
