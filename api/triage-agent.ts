@@ -25,6 +25,13 @@ export default async function handler(
       department: currentCollectedData?.department || null
     };
 
+    // Definir saudações comuns e termos genéricos para filtragem robusta de nome em todas as etapas
+    const splitWords = lastUserMsg.split(/\s+/);
+    const isGreetingOrGeneric = splitWords.some(word => {
+      const cleanWord = word.toLowerCase().replace(/[^a-zÀ-ÖØ-öø-ÿ]/g, '');
+      return ["oi", "ola", "olá", "hey", "heyy", "bom", "dia", "tarde", "noite", "tudo", "bem", "opa", "hello", "hi", "teste", "test", "sim", "nao", "não", "quero", "gostaria", "ajuda", "agendar", "marcar", "reunião", "reuniao", "info", "informação", "informacao", "dca", "dca tec"].includes(cleanWord);
+    });
+
     // --- EXTRAÇÃO INTELIGENTE MULTI-FATOR ---
     
     // 1. Extração de Email
@@ -60,8 +67,9 @@ export default async function handler(
                       lastUserMsg.match(/sou a\s+([A-Za-zÀ-ÖØ-öø-ÿ\s]+)/i);
     if (nameMatch && nameMatch[1]) {
       matchedName = nameMatch[1].split(/(\ssou\s|\sde\s|\sem\s|\scom\s|\se\s|\sgostaria\s|\semail\s|\scontato\s|,|\.)/i)[0].trim();
-      if (matchedName.length > 1) {
-        updatedData.name = matchedName.replace(/\b\w/g, c => c.toUpperCase());
+      const cleanMatched = matchedName.replace(/[^A-Za-zÀ-ÖØ-öø-ÿ\s]/g, '').trim();
+      if (cleanMatched.length > 2 && !isGreetingOrGeneric) {
+        updatedData.name = cleanMatched.replace(/\b\w/g, c => c.toUpperCase());
       }
     }
 
@@ -108,8 +116,11 @@ export default async function handler(
     updatedData.department = dep;
 
     // Se ainda não identificamos o nome, mas o usuário mandou um texto curto de introdução
-    if (!updatedData.name && lastUserMsg.split(/\s+/).length <= 2 && !contentLower.includes("ola") && !contentLower.includes("olá") && !emailMatch && !phoneCandidates) {
-      updatedData.name = lastUserMsg.replace(/\b\w/g, c => c.toUpperCase());
+    if (!updatedData.name && splitWords.length <= 2 && !isGreetingOrGeneric && !emailMatch && !phoneCandidates) {
+      const candidateName = lastUserMsg.trim().replace(/[^\w\sÀ-ÖØ-öø-ÿ]/g, '');
+      if (candidateName.length > 2) {
+        updatedData.name = candidateName.replace(/\b\w/g, c => c.toUpperCase());
+      }
     }
 
     // --- DETERMINAÇÃO DO PRÓXIMO PASSO DE FORMA HUMANIZADA ---
@@ -118,7 +129,12 @@ export default async function handler(
     let scheduleFlag = false;
 
     if (!updatedData.name) {
-      nextResponse = `Compreendi perfeitamente sua necessidade sobre ${updatedData.department || "nossas soluções corporativas"}. Para que eu possa direcionar você ao especialista ideal, com quem tenho o prazer de falar?`;
+      const hasSpecificNeed = !["outros"].includes(dep.toLowerCase()) || (lastUserMsg.length > 15 && !isGreetingOrGeneric);
+      if (hasSpecificNeed) {
+        nextResponse = `Compreendi sua necessidade sobre ${updatedData.department}. Para que eu possa direcionar você ao especialista ideal do Grupo DCA TEC, com quem tenho o prazer de falar?`;
+      } else {
+        nextResponse = `Olá! Seja muito bem-vindo ao Grupo DCA TEC. Para darmos início ao direcionamento especializado, como se chama e como posso ajudar a sua empresa hoje?`;
+      }
     } else if (!updatedData.contact) {
       nextResponse = `Muito prazer, ${updatedData.name}! Para agendarmos sua reunião técnica e enviar as confirmações por WhatsApp e e-mail, qual é o seu melhor e-mail ou telefone para contato direto?`;
     } else if (!updatedData.location) {
@@ -169,6 +185,9 @@ Antes de propor o agendamento, você DEVE extrair (ou manter se já fornecido) c
 - Resumo da Necessidade (para definir o Departamento) (summary)
 
 No objeto collectedData, retorne o consolidado dos dados extraídos até o momento (mesclando os recebidos com os novos extraídos). Se um dado ainda for desconhecido, retorne-o como null ou "".
+
+REGRAS CRÍTICA DE EXTRAÇÃO DE NOME:
+- NUNCA assuma que saudações simples (como "oi", "olá", "bom dia", "boa tarde", "hey", "tudo bem" ou o nome da própria empresa "DCA") são o nome do cliente. Se o nome não for informado explicitamente de forma clara e legível (ex: "Meu nome é João" ou "me chamo João"), mantenha o campo 'name' como null. Nunca preencha 'name' com saudações ou palavras curtas genéricas.
 
 FLUXO DA CONVERSA:
 - Se o usuário já iniciou informando os dados (Ex: "Meu nome é Diego, falo de Florianópolis, contato 48..."): responda validando as informações recebidas e diga que vai abrir a agenda para que ele selecione data/horário da reunião de confirmação, definindo 'shouldSchedule' como true.

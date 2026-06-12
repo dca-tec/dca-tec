@@ -169,11 +169,20 @@ export default function TriageChatWidget() {
         finalName = finalName.substring(0, 100);
       }
 
+      let finalCompany = "Não informada";
+      if (collectedData.summary && collectedData.summary.trim().length > 2) {
+        const cleanSummaryLower = collectedData.summary.trim().toLowerCase();
+        const isGreeting = ["oi", "ola", "olá", "hey", "bom dia", "boa tarde", "boa noite"].some(greet => cleanSummaryLower === greet || cleanSummaryLower.startsWith(greet + " "));
+        if (!isGreeting) {
+          finalCompany = collectedData.summary.trim();
+        }
+      }
+
       const leadData = {
         name: finalName,
         email: finalEmail,
         phone: finalPhone,
-        company: (collectedData.summary || "DCA Leads").substring(0, 50),
+        company: finalCompany.substring(0, 50),
         message: `Agendado pelo Agente Virtual\n\nDepartamento: ${collectedData.department || "Geral"}\nLocalidade: ${collectedData.location || "Não especificada"}\nData da Reunião: ${selectedDate} às ${selectedTime}\nNecessidade extraída: ${collectedData.summary || "Não especificada"}`.substring(0, 2000),
         source: `Triagem Inteligente IA (${collectedData.department || "Triagem Geral"})`.substring(0, 100),
         createdAt: serverTimestamp()
