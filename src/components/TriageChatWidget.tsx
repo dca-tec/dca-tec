@@ -14,7 +14,7 @@ import {
   ChevronRight,
   ShieldAlert
 } from "lucide-react";
-import { collection, addDoc } from "firebase/firestore";
+import { collection, addDoc, serverTimestamp } from "firebase/firestore";
 import { db } from "../lib/firebase";
 import { toast } from "react-hot-toast";
 
@@ -88,19 +88,27 @@ export default function TriageChatWidget() {
       
       // Atualizar dados coletados até o momento
       if (data.collectedData) {
-        setCollectedData(prev => ({
-          name: data.collectedData.name || prev.name,
-          contact: data.collectedData.contact || prev.contact,
-          location: data.collectedData.location || prev.location,
-          summary: data.collectedData.summary || prev.summary,
-          department: data.collectedData.department || prev.department
-        }));
+        setCollectedData(prev => {
+          const fresh = {
+            name: (data.collectedData.name && data.collectedData.name !== "null" && data.collectedData.name !== "") ? data.collectedData.name : prev.name,
+            contact: (data.collectedData.contact && data.collectedData.contact !== "null" && data.collectedData.contact !== "") ? data.collectedData.contact : prev.contact,
+            location: (data.collectedData.location && data.collectedData.location !== "null" && data.collectedData.location !== "") ? data.collectedData.location : prev.location,
+            summary: (data.collectedData.summary && data.collectedData.summary !== "null" && data.collectedData.summary !== "") ? data.collectedData.summary : prev.summary,
+            department: (data.collectedData.department && data.collectedData.department !== "null" && data.collectedData.department !== "") ? data.collectedData.department : prev.department
+          };
+          return fresh;
+        });
       }
 
       setMessages(prev => [...prev, { role: "model", content: data.response }]);
 
-      // Se a IA indicar que chegou a hora de agendar
-      if (data.shouldSchedule && !appointmentBooked) {
+      // Se a IA indicar que chegou a hora de agendar OU se já temos Nome, Contato e Localidade preenchidos
+      const hasMandatoryData = data.collectedData && 
+        data.collectedData.name && data.collectedData.name !== "null" && data.collectedData.name !== "" &&
+        data.collectedData.contact && data.collectedData.contact !== "null" && data.collectedData.contact !== "" &&
+        data.collectedData.location && data.collectedData.location !== "null" && data.collectedData.location !== "";
+
+      if ((data.shouldSchedule || hasMandatoryData) && !appointmentBooked) {
         setShowCalendar(true);
       }
 
@@ -121,18 +129,37 @@ export default function TriageChatWidget() {
 
     setIsLoading(true);
     try {
-      // 1. Salvar Lead no Firestore para que apareça no Dashboard e no CRM
-      const finalEmail = collectedData.contact?.includes("@") ? collectedData.contact : "nao_informado@dca.com";
-      const finalPhone = !collectedData.contact?.includes("@") ? collectedData.contact : "";
+      // 1. Salvar Lead no Firestore de acordo com as regras de validação estritas
+      let finalEmail = "nao_informado@dca.com";
+      let finalPhone = "Sem telefone";
+
+      if (collectedData.contact) {
+        const cleanedContact = collectedData.contact.trim();
+        if (cleanedContact.includes("@")) {
+          // Extrair apenas o e-mail se houver texto ao redor
+          const emailMatch = cleanedContact.match(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/);
+          finalEmail = emailMatch ? emailMatch[0] : "nao_informado@dca.com";
+        } else {
+          // Limitar o telefone a 20 caracteres conforme regra (isValidLead: data.phone.size() <= 20)
+          finalPhone = cleanedContact.substring(0, 20);
+        }
+      }
+
+      let finalName = collectedData.name?.trim() || "Lead via Triagem IA";
+      if (finalName.length < 2) {
+        finalName = "Lead via Triagem IA";
+      } else if (finalName.length > 100) {
+        finalName = finalName.substring(0, 100);
+      }
 
       const leadData = {
-        name: collectedData.name || "Lead via Triagem IA",
+        name: finalName,
         email: finalEmail,
-        phone: finalPhone || "Sem telefone",
-        company: collectedData.summary?.substring(0, 50) || "DCA Leads",
-        message: `Agendado pelo Agente Virtual\n\nDepartamento: ${collectedData.department || "Geral"}\nLocalidade: ${collectedData.location || "Não especificada"}\nData da Reunião: ${selectedDate} às ${selectedTime}\nNecessidade extraída: ${collectedData.summary || "Não especificada"}`,
-        source: `Triagem Inteligente IA (${collectedData.department || "Triagem Geral"})`,
-        createdAt: new Date().toISOString()
+        phone: finalPhone,
+        company: (collectedData.summary || "DCA Leads").substring(0, 50),
+        message: `Agendado pelo Agente Virtual\n\nDepartamento: ${collectedData.department || "Geral"}\nLocalidade: ${collectedData.location || "Não especificada"}\nData da Reunião: ${selectedDate} às ${selectedTime}\nNecessidade extraída: ${collectedData.summary || "Não especificada"}`.substring(0, 2000),
+        source: `Triagem Inteligente IA (${collectedData.department || "Triagem Geral"})`.substring(0, 100),
+        createdAt: serverTimestamp()
       };
 
       await addDoc(collection(db, "leads"), leadData);
