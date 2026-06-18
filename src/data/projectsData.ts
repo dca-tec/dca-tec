@@ -97,23 +97,14 @@ export const projectsData: Record<string, ProjectInfo> = {
     icon: Cpu,
     features: ["Engenharia Quântica", "Materiais Avançados", "Pesquisa Computacional"]
   },
-  "pericia-excelencia": {
-    slug: "pericia-excelencia",
-    name: "Perícia e Excelência",
-    category: "Consultoria Especializada",
-    description: "Auditoria e perícia técnica de alta complexidade.",
-    longDescription: "Serviços especializados de perícia técnica em sistemas complexos, garantindo conformidade, segurança e excelência operacional para grandes indústrias e projetos críticos.",
-    icon: Scale,
-    features: ["Laudos Técnicos", "Auditoria de Sistemas", "Forense de Engenharia"]
-  },
   "cisc-iii": {
     slug: "cisc-iii",
-    name: "C.I.S.C III - Sistemas Complexos",
+    name: "C.I.S.C III - Perícia e Sistemas Complexos",
     category: "Consultoria Especializada",
-    description: "Inteligência em Sistemas Complexos e Diligências.",
-    longDescription: "Focado em diligências de excelência e análise de sistemas complexos, o CISC III provê soluções analíticas para problemas que exigem uma visão sistêmica e profunda da engenharia moderna.",
-    icon: Brain,
-    features: ["Análise Sistêmica", "Resolução de Conflitos", "Diligências Técnicas"]
+    description: "Perícia judicial e inteligência em sistemas complexos.",
+    longDescription: "Unidade especializada em perícia judicial de engenharia, assistência técnica, laudos de auditoria de alta complexidade e análise analítica profunda de sistemas complexos para resolução de conflitos críticos e diligências técnicas de excelência.",
+    icon: Scale,
+    features: ["Perícia Judicial & Assistência Técnica", "Auditoria & Laudos de Alta Complexidade", "Forense de Engenharia & Sistemas Complexos"]
   },
   "laboratorial": {
     slug: "laboratorial",
@@ -438,7 +429,7 @@ export const projectsData: Record<string, ProjectInfo> = {
   "ozonio-medico": {
     slug: "ozonio-medico",
     name: "Ozônio Médico",
-    category: "Biofísica e Bem-Estar",
+    category: "Consultoria Especializada",
     description: "Terapias oxidativas avançadas.",
     longDescription: "Sistemas profissionais para aplicação de ozônio medicinal, focados em regeneração tecidual, desinfetação e reforço imunológico.",
     icon: Stethoscope,
@@ -503,7 +494,7 @@ export const projectsData: Record<string, ProjectInfo> = {
   "neotropica": {
     slug: "neotropica",
     name: "Neotropica Serpentário",
-    category: "Engenharia",
+    category: "Consultoria Especializada",
     description: "Serpentário de Alta Tecnologia com 6 Domos.",
     longDescription: "Infraestrutura bio-tecnológica avançada composta por 6 domos geodésicos para criação, manejo e extração ética de peçonhas para uso farmacêutico e científico.",
     icon: Building2,

@@ -156,12 +156,14 @@ export default function Home() {
         { name: "CISQ I - Saúde e Quântica", url: "https://cisq.lovable.app", icon: <HeartPulse className="w-4 h-4" /> },
         { name: "Biofísica", url: "/projects/biofisica", icon: <Activity className="w-4 h-4" />, isInternal: true },
         { name: "CISQ II - Sistemas Quânticos", url: "/projects/cisq-ii", icon: <Cpu className="w-4 h-4" />, isInternal: true },
-        { name: "Perícia e Excelência", url: "/projects/pericia-excelencia", icon: <Scale className="w-4 h-4" />, isInternal: true },
-        { name: "C.I.S.C III - Sistemas Complexos", url: "/projects/cisc-iii", icon: <Brain className="w-4 h-4" />, isInternal: true },
+        { name: "C.I.S.C III - Perícia e Sistemas Complexos", url: "/projects/cisc-iii", icon: <Scale className="w-4 h-4" />, isInternal: true },
         { name: "Nardi Tec Sanitização", url: "https://narditec.lovable.app", icon: <Wind className="w-4 h-4" /> },
         { name: "Laboratorial", url: "/projects/laboratorial", icon: <FlaskConical className="w-4 h-4" />, isInternal: true },
         { name: "BIOTEC Cogumelos", url: "/projects/biotec-cogumelos", icon: <FlaskConical className="w-4 h-4" />, isInternal: true },
         { name: "HUGH Shesau (Biotec)", url: "/projects/hugh-shesau", icon: <Dna className="w-4 h-4" />, isInternal: true },
+        { name: "Neotropica Serpentário", url: "/projects/neotropica", icon: <Building2 className="w-4 h-4" />, isInternal: true },
+        { name: "Bluenardi Hidrosanitária", url: "https://bluenardi.lovable.app", icon: <Waves className="w-4 h-4" /> },
+        { name: "Ozônio Médico", url: "/projects/ozonio-medico", icon: <Stethoscope className="w-4 h-4" />, isInternal: true },
       ]
     },
     {
@@ -201,7 +203,6 @@ export default function Home() {
         { name: "ArcTec (Design Inteligente)", url: "/projects/arctec", icon: <Cpu className="w-4 h-4" />, isInternal: true },
         { name: "Hangar Customs (Oficina)", url: "https://hangarcustoms.lovable.app", icon: <Car className="w-4 h-4" /> },
         { name: "GEOBIO (Construção)", url: "/projects/geobio", icon: <Building className="w-4 h-4" />, isInternal: true },
-        { name: "Neotropica Serpentário", url: "/projects/neotropica", icon: <Building2 className="w-4 h-4" />, isInternal: true },
         { name: "Aureon", url: "/projects/aureon", icon: <Rocket className="w-4 h-4" />, isInternal: true },
         { name: "Titan", url: "/projects/titan", icon: <Rocket className="w-4 h-4" />, isInternal: true },
         { name: "Horizon", url: "/projects/horizon", icon: <Rocket className="w-4 h-4" />, isInternal: true },
@@ -258,11 +259,9 @@ export default function Home() {
         { name: "Hypersenses", url: "https://hypersenses.lovable.app", icon: <Zap className="w-4 h-4" /> },
         { name: "Hidrogen Shop", url: "https://hidrogen.lovable.app", icon: <Zap className="w-4 h-4" /> },
         { name: "Saara Sahel (Terapêuticos)", url: "/projects/saara-sahel", icon: <Activity className="w-4 h-4" />, isInternal: true },
-        { name: "Ozônio Médico", url: "/projects/ozonio-medico", icon: <Stethoscope className="w-4 h-4" />, isInternal: true },
         { name: "Ozoncare", url: "https://ozonecare.lovable.app", icon: <Wind className="w-4 h-4" /> },
         { name: "Aiolos", url: "https://aiolos.lovable.app", icon: <Wind className="w-4 h-4" /> },
         { name: "Genesis Acqua", url: "https://genesisacqua.lovable.app", icon: <FlaskConical className="w-4 h-4" /> },
-        { name: "Bluenardi Hidrosanitária", url: "https://bluenardi.lovable.app", icon: <Waves className="w-4 h-4" /> },
       ]
     },
     {
