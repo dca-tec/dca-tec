@@ -13,7 +13,11 @@ import {
   Layout, 
   Box,
   Menu,
-  X
+  X,
+  Sun,
+  Moon,
+  Layers,
+  Sparkles
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { collection, addDoc, serverTimestamp } from "firebase/firestore";
@@ -23,6 +27,8 @@ export default function DcaConcepts() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitStatus, setSubmitStatus] = useState<'idle' | 'success' | 'error'>('idle');
+  const [whiteOpacity, setWhiteOpacity] = useState<number>(85);
+  const [blackOpacity, setBlackOpacity] = useState<number>(90);
 
   const services = [
     {
@@ -103,6 +109,7 @@ export default function DcaConcepts() {
         </Link>
         
         <div className="hidden md:flex gap-12 text-white">
+          <a href="#spectrum" className="text-[10px] uppercase font-bold tracking-[3px] hover:opacity-50 transition-opacity">Luz & Sombra</a>
           <a href="#services" className="text-[10px] uppercase font-bold tracking-[3px] hover:opacity-50 transition-opacity">Serviços</a>
           <a href="#portfolio" className="text-[10px] uppercase font-bold tracking-[3px] hover:opacity-50 transition-opacity">Portfólio</a>
           <a href="#contact" className="text-[10px] uppercase font-bold tracking-[3px] hover:opacity-50 transition-opacity">Contato</a>
@@ -130,12 +137,20 @@ export default function DcaConcepts() {
             Design Concepts Arrow (DCA) é o braço criativo do ecossistema DCA TEC, 
             unindo estética atemporal e visão estratégica para resultados que transcendem o óbvio.
           </p>
-          <a 
-            href="#services" 
-            className="inline-flex items-center gap-4 px-12 py-5 bg-luxury-gold text-luxury-ink font-bold uppercase tracking-widest text-xs hover:bg-white transition-colors"
-          >
-            Nossa Visão <ChevronRight className="w-4 h-4" />
-          </a>
+          <div className="flex flex-col sm:flex-row gap-4">
+            <a 
+              href="#spectrum" 
+              className="inline-flex items-center justify-center gap-4 px-12 py-5 bg-luxury-gold text-luxury-ink font-bold uppercase tracking-widest text-xs hover:bg-white transition-colors animate-pulse"
+            >
+              Luz & Sombra (B&W) <ChevronRight className="w-4 h-4" />
+            </a>
+            <a 
+              href="#services" 
+              className="inline-flex items-center justify-center gap-4 px-12 py-5 border border-white/20 text-white font-bold uppercase tracking-widest text-xs hover:bg-white hover:text-black transition-colors"
+            >
+              Nossos Serviços
+            </a>
+          </div>
         </motion.div>
 
         {/* Decorative elements */}
@@ -146,6 +161,202 @@ export default function DcaConcepts() {
             alt="Architecture"
             referrerPolicy="no-referrer"
           />
+        </div>
+      </section>
+
+      {/* Black & White Spectrum Concept Section */}
+      <section id="spectrum" className="py-32 px-8 md:px-20 bg-luxury-ink text-luxury-paper relative overflow-hidden border-t border-b border-white/10">
+        <div className="absolute top-0 left-0 w-full h-full opacity-5 pointer-events-none bg-[radial-gradient(#ffffff_1px,transparent_1px)] [background-size:16px_16px]" />
+        
+        <div className="mb-20 max-w-4xl relative z-10">
+          <span className="text-[10px] uppercase font-bold tracking-[6px] text-luxury-gold mb-4 block">Manifesto de Design</span>
+          <h2 className="font-serif text-5xl md:text-7xl font-light mb-8 lowercase">
+            Dualismo Criativo: <span className="italic font-normal">Luz & Sombra</span>
+          </h2>
+          <p className="text-lg md:text-xl font-light leading-relaxed opacity-75 max-w-3xl">
+            Para o departamento de design da DCA, a criação é um balanço sutil de forças opostas e complementares. 
+            A luz revela a forma; a sombra confere profundidade. O espectro visível da luz versus a totalidade e integração de todas as frequências cromáticas. 
+            Desenvolvemos duas experiências digitais liminares e exclusivas que servem como portais de entrada para o nosso universo conceitual:
+          </p>
+        </div>
+
+        {/* Interactive Dualism Sandbox */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 relative z-10">
+          
+          {/* THE WHITE PORTAL (Luz) */}
+          <motion.div 
+            whileHover={{ y: -6 }}
+            transition={{ duration: 0.4 }}
+            className="bg-white text-black p-8 md:p-16 rounded-sm relative flex flex-col justify-between overflow-hidden shadow-2xl min-h-[550px] border border-white/20 group text-left"
+          >
+            {/* Background luxury gradient representing pure refraction */}
+            <div className="absolute -right-20 -top-20 w-80 h-80 rounded-full bg-[radial-gradient(circle,_rgba(197,160,89,0.15)_0%,_transparent_70%)] pointer-events-none group-hover:scale-125 transition-transform duration-1000" />
+            
+            <div>
+              <div className="flex justify-between items-start mb-12">
+                <span className="text-[10px] uppercase font-black tracking-[4px] bg-black text-white px-3 py-1 rounded-sm">
+                  White Design
+                </span>
+                <Sun className="w-8 h-8 text-luxury-gold animate-pulse" />
+              </div>
+              
+              <h3 className="font-serif text-3xl md:text-4xl italic font-light mb-4 text-black">
+                A Luz & O Espectro Visível
+              </h3>
+              <p className="font-sans text-xs uppercase tracking-[2px] font-bold text-luxury-gold mb-6">
+                Representação da Clareza, Emissão e Pureza
+              </p>
+              
+              <p className="font-light text-sm md:text-base leading-relaxed opacity-80 mb-8 max-w-md text-black/70">
+                O Branco representa o canal transparente de manifestação e a refração pura de todo o espectro visível. 
+                É a manifestação imediata da clareza, transparência absoluta e inovação em sua forma mais leve e límpida.
+                Neste portal, exploramos o design purista, a geometria cristalina e o minimalismo que respira espaço.
+              </p>
+
+              {/* Dynamic Transparency Slider Showcase */}
+              <div className="bg-black/5 p-6 rounded-sm border border-black/5 mb-8">
+                <div className="flex justify-between items-center mb-2">
+                  <span className="text-[10px] uppercase font-bold tracking-[2px] flex items-center gap-2 text-black/60">
+                    <Layers className="w-3.5 h-3.5" /> Transparência Ativa:
+                  </span>
+                  <span className="text-xs font-mono font-bold text-black">{whiteOpacity}%</span>
+                </div>
+                <input 
+                  type="range" 
+                  min="10" 
+                  max="100" 
+                  value={whiteOpacity} 
+                  onChange={(e) => setWhiteOpacity(Number(e.target.value))}
+                  className="w-full h-1 bg-black/10 rounded-lg appearance-none cursor-pointer accent-luxury-gold" 
+                />
+                
+                {/* Visualizer showing the opacity effect and secret pattern */}
+                <div className="mt-4 h-24 rounded-sm relative overflow-hidden flex items-center justify-center border border-black/10 bg-white">
+                  {/* Subtle secret grid underneath */}
+                  <div className="absolute inset-0 bg-[linear-gradient(45deg,#f0f0f0_25%,transparent_25%),linear-gradient(-45deg,#f0f0f0_25%,transparent_25%),linear-gradient(45deg,transparent_75%,#f0f0f0_75%),linear-gradient(-45deg,transparent_75%,#f0f0f0_75%)] bg-[size:20px_20px] bg-[position:0_0,0_10px,10px_-10px,-10px_0] opacity-40" />
+                  
+                  {/* Overlay layer controlled by opacity slider */}
+                  <div 
+                    className="absolute inset-0 bg-white flex flex-col items-center justify-center transition-all duration-150"
+                    style={{ opacity: whiteOpacity / 100 }}
+                  >
+                    <p className="text-[10px] uppercase tracking-[3px] font-bold text-black/80">Luz Reveladora</p>
+                    <p className="text-[8px] uppercase tracking-[1px] text-black/40 font-mono">DCA White Concept</p>
+                  </div>
+                  <p className="text-[9px] uppercase tracking-[2px] text-luxury-gold font-bold z-0 pointer-events-none">Substrato Oculto Revelado</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="pt-6 border-t border-black/10">
+              <a 
+                href="https://whitedesign.dca.tec.br/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-3 w-full py-4 justify-center bg-black text-white hover:bg-luxury-gold hover:text-black font-bold uppercase tracking-widest text-xs transition-all rounded-sm shadow-md"
+              >
+                Acessar White Design <ChevronRight className="w-4 h-4" />
+              </a>
+              <span className="text-[8px] font-mono text-center block mt-2 text-black/40">URL oficial: https://whitedesign.dca.tec.br</span>
+            </div>
+          </motion.div>
+
+          {/* THE BLACK PORTAL (Sombra) */}
+          <motion.div 
+            whileHover={{ y: -6 }}
+            transition={{ duration: 0.4 }}
+            className="bg-black text-white p-8 md:p-16 rounded-sm relative flex flex-col justify-between overflow-hidden shadow-2xl min-h-[550px] border border-white/10 group text-left"
+          >
+            {/* Background luxury gradient representing absolute shadow absorption */}
+            <div className="absolute -right-20 -top-20 w-80 h-80 rounded-full bg-[radial-gradient(circle,_rgba(255,255,255,0.05)_0%,_transparent_70%)] pointer-events-none group-hover:scale-125 transition-transform duration-1000" />
+            
+            <div>
+              <div className="flex justify-between items-start mb-12">
+                <span className="text-[10px] uppercase font-black tracking-[4px] bg-white text-black px-3 py-1 rounded-sm">
+                  Black Design
+                </span>
+                <Moon className="w-8 h-8 text-luxury-gold animate-pulse" />
+              </div>
+              
+              <h3 className="font-serif text-3xl md:text-4xl italic font-light mb-4 text-white">
+                A Sombra & A Soma de Todas as Cores
+              </h3>
+              <p className="font-sans text-xs uppercase tracking-[2px] font-bold text-luxury-gold mb-6">
+                Representação do Infinito, Absorção e Profundidade
+              </p>
+              
+              <p className="font-light text-sm md:text-base leading-relaxed opacity-75 mb-8 max-w-md text-white/70">
+                No espectro de cores da matéria (frequência de pigmentos), o Preto representa a soma integrada de todas as cores existentes.
+                É a quietude profunda, o espaço primordial onde todas as ideias e estruturas de design residem antes de serem iluminadas.
+                Nesse portal, exploramos o contraste dramático, a sofisticação soturna e o design imersivo de altíssimo luxo.
+              </p>
+
+              {/* Dynamic Transparency Slider Showcase */}
+              <div className="bg-white/5 p-6 rounded-sm border border-white/5 mb-8">
+                <div className="flex justify-between items-center mb-2">
+                  <span className="text-[10px] uppercase font-bold tracking-[2px] flex items-center gap-2 text-white/60">
+                    <Layers className="w-3.5 h-3.5" /> Transparência Ativa:
+                  </span>
+                  <span className="text-xs font-mono font-bold text-white">{blackOpacity}%</span>
+                </div>
+                <input 
+                  type="range" 
+                  min="10" 
+                  max="100" 
+                  value={blackOpacity} 
+                  onChange={(e) => setBlackOpacity(Number(e.target.value))}
+                  className="w-full h-1 bg-white/10 rounded-lg appearance-none cursor-pointer accent-luxury-gold" 
+                />
+                
+                {/* Visualizer showing the opacity effect and secret pattern */}
+                <div className="mt-4 h-24 rounded-sm relative overflow-hidden flex items-center justify-center border border-white/10 bg-zinc-950">
+                  {/* Subtle secret constellation underneath */}
+                  <div className="absolute inset-0 bg-[radial-gradient(#ffffff_1px,transparent_1px)] [background-size:12px_12px] opacity-30" />
+                  
+                  {/* Overlay layer controlled by opacity slider */}
+                  <div 
+                    className="absolute inset-0 bg-black flex flex-col items-center justify-center transition-all duration-150"
+                    style={{ opacity: blackOpacity / 100 }}
+                  >
+                    <p className="text-[10px] uppercase tracking-[3px] font-bold text-white/80">Sombra Ocultadora</p>
+                    <p className="text-[8px] uppercase tracking-[1px] text-white/40 font-mono">DCA Black Concept</p>
+                  </div>
+                  <p className="text-[9px] uppercase tracking-[2px] text-luxury-gold font-bold z-0 pointer-events-none">Potencial Criativo Revelado</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="pt-6 border-t border-white/10">
+              <a 
+                href="http://blackdesign.dca.tec.br/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-3 w-full py-4 justify-center bg-white text-black hover:bg-luxury-gold hover:text-black font-bold uppercase tracking-widest text-xs transition-all rounded-sm shadow-md"
+              >
+                Acessar Black Design <ChevronRight className="w-4 h-4" />
+              </a>
+              <span className="text-[8px] font-mono text-center block mt-2 text-white/40">URL oficial: http://blackdesign.dca.tec.br</span>
+            </div>
+          </motion.div>
+
+        </div>
+        
+        {/* Conceptual summary about light vs pigment frequency */}
+        <div className="mt-20 border-t border-white/10 pt-12 flex flex-col md:flex-row justify-between items-center gap-8 relative z-10">
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 rounded-full border border-white/20 flex items-center justify-center">
+              <Sparkles className="text-luxury-gold w-5 h-5" />
+            </div>
+            <div>
+              <h4 className="text-xs uppercase font-bold tracking-[2px] text-white text-left">Espectro de Frequência Cromática</h4>
+              <p className="text-xs text-white/60 font-light mt-1 text-left">A união conceitual entre a física da luz e a pigmentação cromática na arte.</p>
+            </div>
+          </div>
+          <p className="max-w-md text-xs font-light text-white/50 leading-relaxed text-left md:text-right">
+            Enquanto o branco representa a soma na física da refração óptica (o espectro visível completo), 
+            o preto representa a síntese subtrativa na mistura cromática física. Ambas as forças dão forma à 
+            estética de precisão da DCA Concepts.
+          </p>
         </div>
       </section>
 
@@ -335,6 +546,7 @@ export default function DcaConcepts() {
             </div>
             
             <div className="flex flex-col gap-12 text-4xl font-serif lowercase italic">
+              <a href="#spectrum" onClick={() => setIsMenuOpen(false)}>luz & sombra</a>
               <a href="#services" onClick={() => setIsMenuOpen(false)}>serviços</a>
               <a href="#portfolio" onClick={() => setIsMenuOpen(false)}>portfólio</a>
               <a href="#contact" onClick={() => setIsMenuOpen(false)}>contato</a>
