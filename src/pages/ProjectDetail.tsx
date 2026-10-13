@@ -22,8 +22,10 @@ export default function ProjectDetail() {
           <ChevronLeft className="w-5 h-5 text-[#00ffe0] group-hover:-translate-x-1 transition-transform" />
           <span className="text-[10px] uppercase tracking-[4px] font-bold">Voltar para Ecossistema</span>
         </Link>
-        <div className="text-xl font-bold tracking-[4px] hero-gradient-text hidden md:block">
-          DCA TEC // {project.name.toUpperCase()}
+        <div className="flex items-center gap-3 hidden md:flex">
+          <div className="text-xl font-bold tracking-[4px] hero-gradient-text">
+            DCA TEC // {project.name.toUpperCase()}
+          </div>
         </div>
       </nav>
 
@@ -51,9 +53,20 @@ export default function ProjectDetail() {
           </div>
           
           <div className="flex flex-col gap-4 w-full md:w-auto">
-             <button className="px-10 py-5 btn-gradient rounded-full text-black font-bold text-sm uppercase tracking-widest hover:scale-105 transition-transform flex items-center justify-center gap-2">
-               Solicitar Orçamento <ArrowUpRight className="w-4 h-4" />
-             </button>
+             {project.externalUrl ? (
+               <a 
+                 href={project.externalUrl}
+                 target="_blank"
+                 rel="noopener noreferrer"
+                 className="px-10 py-5 bg-[#00ffe0] text-black font-bold text-sm uppercase tracking-widest rounded-full hover:scale-105 hover:shadow-[0_0_25px_rgba(0,255,224,0.4)] transition-all flex items-center justify-center gap-2"
+               >
+                 Acessar Plataforma Oficial <ArrowUpRight className="w-4 h-4" />
+               </a>
+             ) : (
+               <button className="px-10 py-5 btn-gradient rounded-full text-black font-bold text-sm uppercase tracking-widest hover:scale-105 transition-transform flex items-center justify-center gap-2">
+                 Solicitar Orçamento <ArrowUpRight className="w-4 h-4" />
+               </button>
+             )}
              <a 
                href={`https://wa.me/5548991796036?text=Olá, gostaria de saber mais sobre ${project.name}`}
                target="_blank"
@@ -71,6 +84,32 @@ export default function ProjectDetail() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-20">
           {/* Detailed Info */}
           <section className="lg:col-span-2 space-y-16">
+            {project.externalUrl && (
+              <motion.div
+                initial={{ opacity: 0, y: 15 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                className="p-8 rounded-3xl bg-gradient-to-r from-[#00ffe0]/15 via-white/[0.03] to-transparent border border-[#00ffe0]/30 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6"
+              >
+                <div>
+                  <div className="flex items-center gap-2 text-[#00ffe0] text-[10px] uppercase font-bold tracking-[3px] mb-2">
+                    <span className="w-2 h-2 rounded-full bg-[#00ffe0] animate-ping" />
+                    Plataforma Oficial Ativa
+                  </div>
+                  <h3 className="text-xl font-bold text-white mb-1">Acesse o portal dedicado de {project.name}</h3>
+                  <p className="text-sm text-white/50 break-all">{project.externalUrl}</p>
+                </div>
+                <a
+                  href={project.externalUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="px-6 py-3.5 bg-[#00ffe0] text-black font-bold text-xs uppercase tracking-widest rounded-full hover:bg-white hover:shadow-[0_0_20px_rgba(0,255,224,0.3)] transition-all flex items-center gap-2 whitespace-nowrap"
+                >
+                  Ir para o Site <ArrowUpRight className="w-4 h-4" />
+                </a>
+              </motion.div>
+            )}
+
             <motion.div
               initial={{ opacity: 0 }}
               whileInView={{ opacity: 1 }}

@@ -36,9 +36,11 @@ import {
   Activity,
   Layers,
   ShieldCheck,
-  Lock
+  Lock,
+  Sliders
 } from "lucide-react";
 import CyberSecurityMonitor from "../components/CyberSecurityMonitor";
+import LaunchManager from "../components/LaunchManager";
 import { 
   collection, 
   query, 
@@ -162,7 +164,7 @@ export default function Dashboard() {
   const [documents, setDocuments] = useState<ClientDocument[]>([]);
   const [biddings, setBiddings] = useState<Bidding[]>([]);
   const [acquisitions, setAcquisitions] = useState<AcquisitionProposal[]>([]);
-  const [activeTab, setActiveTab] = useState<'leads' | 'clients' | 'acquisitions' | 'instructions' | 'cybersecurity'>('leads');
+  const [activeTab, setActiveTab] = useState<'leads' | 'clients' | 'acquisitions' | 'instructions' | 'cybersecurity' | 'launches'>('leads');
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedClient, setSelectedClient] = useState<Acceptance | null>(null);
   const [clientDetailTab, setClientDetailTab] = useState<'info' | 'documents' | 'biddings' | 'checklist' | 'chat'>('info');
@@ -954,6 +956,14 @@ export default function Dashboard() {
             <div className="ml-auto w-2 h-2 bg-[#00ffe0] rounded-full animate-pulse" />
           </button>
 
+          <button onClick={() => setActiveTab('launches')} className={navItemClass('launches')}>
+            <Sliders className="w-5 h-5 text-[#00ffe0]" />
+            <span className="font-bold text-xs uppercase tracking-[2px]">Lançamentos & Blocos</span>
+            <span className="ml-auto bg-[#00ffe0]/10 text-[#00ffe0] border border-[#00ffe0]/20 px-2 py-0.5 rounded text-[10px] font-mono">
+              Marketing
+            </span>
+          </button>
+
           {/* Collapsible Group: Clientes */}
           <div className="pt-4">
             <button 
@@ -1074,13 +1084,15 @@ export default function Dashboard() {
                activeTab === 'acquisitions' ? 'M&A Strategic Hub' : 
                activeTab === 'instructions' ? 'Instruções' : 
                activeTab === 'cybersecurity' ? 'Monitor de Cybersecurity & LGPD' :
+               activeTab === 'launches' ? 'Estratégia de Lançamento & Visibilidade' :
                activeTab === 'consultoria_especializada' ? 'Consultoria Especializada' :
                'Área em Desenvolvimento'}
             </h1>
             <p className="text-white/40 text-sm">
                {activeTab === 'leads' || activeTab === 'clients' || activeTab === 'acquisitions' 
                  ? 'Acompanhe as interações em tempo real.'
-                 : activeTab === 'cybersecurity' ? 'Proteção Zero Trust e Auditoria LGPD Ativa.' :
+                 : activeTab === 'cybersecurity' ? 'Proteção Zero Trust e Auditoria LGPD Ativa.' 
+                 : activeTab === 'launches' ? 'Controle sequencial de blocos da página inicial e projetos do ecossistema.' :
                  'Esta seção está sendo preparada para o próximo rollout.'}
             </p>
           </div>
@@ -1605,6 +1617,7 @@ export default function Dashboard() {
           )}
 
           {activeTab === 'cybersecurity' && <CyberSecurityMonitor />}
+          {activeTab === 'launches' && <LaunchManager />}
         </div>
       </main>
 

@@ -37,6 +37,7 @@ export interface ProjectInfo {
   features: string[];
   stats?: { label: string; value: string }[];
   ctaText?: string;
+  externalUrl?: string;
 }
 
 export const projectsData: Record<string, ProjectInfo> = {
@@ -57,7 +58,8 @@ export const projectsData: Record<string, ProjectInfo> = {
     description: "Branding e estratégia de mercado de alto impacto.",
     longDescription: "Transformamos marcas através de design estratégico, posicionamento premium e marketing orientado a dados. Criamos identidades que transcendem o comum e geram valor percebido imediato.",
     icon: Palette,
-    features: ["Branding Premium", "Performance Digital", "Estratégia de Lançamento"]
+    features: ["Branding Premium", "Performance Digital", "Estratégia de Lançamento"],
+    externalUrl: "https://marketing.dca.tec.br/"
   },
   "editora": {
     slug: "editora",
@@ -66,7 +68,8 @@ export const projectsData: Record<string, ProjectInfo> = {
     description: "Publicação de conhecimento técnico e científico.",
     longDescription: "O braço editorial da DCA TEC foca na disseminação de conhecimento técnico, científico e filosófico, servindo como base intelectual para todo o ecossistema e seus parceiros.",
     icon: BookOpen,
-    features: ["Publicações Científicas", "Conteúdo Técnico", "Propriedade Intelectual"]
+    features: ["Publicações Científicas", "Conteúdo Técnico", "Propriedade Intelectual"],
+    externalUrl: "https://editora.dca.tec.br/"
   },
 
   // Consultoria Especializada
@@ -366,7 +369,8 @@ export const projectsData: Record<string, ProjectInfo> = {
     description: "Ferramentas e códigos para desenvolvedores.",
     longDescription: "Nossa loja para o desenvolvedor moderno. Oferecemos templates, frameworks e scripts proprietários para acelerar a inovação digital.",
     icon: BookOpen,
-    features: ["Code Templates", "SDKs Privados", "Bibliotecas UI"]
+    features: ["Code Templates", "SDKs Privados", "Bibliotecas UI"],
+    externalUrl: "https://codes.dca.tec.br/"
   },
   "hangar-premium": {
     slug: "hangar-premium",
@@ -471,7 +475,8 @@ export const projectsData: Record<string, ProjectInfo> = {
     description: "Geopolimerização Ancestral Pozolânica.",
     longDescription: "Pesquisa e aplicação de técnicas ancestrais de geopolimerização para construção civil de ultra-resistência e baixo impacto ambiental, utilizando materiais pozolânicos de alta reatividade.",
     icon: Building,
-    features: ["Construção Ancestral", "Materiais Sustentáveis", "Alta Durabilidade"]
+    features: ["Construção Ancestral", "Materiais Sustentáveis", "Alta Durabilidade"],
+    externalUrl: "https://neovernacular.dca.tec.br/"
   },
   "biotec-cogumelos": {
     slug: "biotec-cogumelos",
@@ -489,7 +494,8 @@ export const projectsData: Record<string, ProjectInfo> = {
     description: "Medicina Natural, Biblioteca e Cursos.",
     longDescription: "Um centro dedicado ao ensino da medicina natural baseada em evidências, com uma vasta biblioteca técnica e cursos de especialização para profissionais de saúde.",
     icon: GraduationCap,
-    features: ["Educação em Saúde", "Biblioteca Técnica", "Medicina Natural"]
+    features: ["Educação em Saúde", "Biblioteca Técnica", "Medicina Natural"],
+    externalUrl: "https://galenus.dca.tec.br/"
   },
   "neotropica": {
     slug: "neotropica",
@@ -498,7 +504,8 @@ export const projectsData: Record<string, ProjectInfo> = {
     description: "Serpentário de Alta Tecnologia com 6 Domos.",
     longDescription: "Infraestrutura bio-tecnológica avançada composta por 6 domos geodésicos para criação, manejo e extração ética de peçonhas para uso farmacêutico e científico.",
     icon: Building2,
-    features: ["Domos Geodésicos", "Extração de Peçonhas", "Manejo Ético"]
+    features: ["Domos Geodésicos", "Extração de Peçonhas", "Manejo Ético"],
+    externalUrl: "https://neotropica.dca.tec.br/"
   },
   "loja-cobre": {
     slug: "loja-cobre",

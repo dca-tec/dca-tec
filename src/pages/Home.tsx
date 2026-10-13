@@ -47,12 +47,15 @@ import {
   Store,
   Waves
 } from "lucide-react";
-import React, { useState, FormEvent } from "react";
+import React, { useState, FormEvent, useMemo } from "react";
 import { Link } from "react-router-dom";
 import { collection, addDoc, serverTimestamp } from "firebase/firestore";
 import { db, handleFirestoreError, OperationType } from "../lib/firebase";
+import HeroCarousel from "../components/HeroCarousel";
+import { useSiteVisibility } from "../lib/siteConfig";
 
 export default function Home() {
+  const { isBlockActive, isProjectActive } = useSiteVisibility();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitStatus, setSubmitStatus] = useState<'idle' | 'success' | 'error'>('idle');
@@ -118,17 +121,54 @@ export default function Home() {
     }
   ];
 
-  const navLinks = [
-    { name: "Sobre", href: "#sobre" },
-    { name: "Consultoria", href: "#consultoria-integrada" },
-    { name: "Apps", href: "#apps" },
-    { name: "Engenharia", href: "#engenharia" },
-    { name: "Arquitetura", href: "#arquitetura-design" },
-    { name: "Eventos", href: "#eventos" },
-    { name: "Biofísica", href: "#biofisica-saude" },
-    { name: "Contato", href: "#contato" },
-    { name: "Portal", href: "/login", isInternal: true },
+  const getProjectKey = (item: { id?: string; name: string; url: string }) => {
+    if (item.id) return item.id;
+    if (item.url.startsWith("/projects/")) return item.url.replace("/projects/", "");
+    if (item.url.startsWith("/") && item.url !== "/") return item.url.replace("/", "");
+    const map: Record<string, string> = {
+      "Tributária": "tributaria",
+      "Automações Indústria 6.0": "automacao",
+      "Licitações": "licitacoes",
+      "DCA Kode": "kode",
+      "DCA Design Concepts": "concepts",
+      "Gamefication VR": "games",
+      "CISQ I - Saúde e Quântica": "cisq-i",
+      "Nardi Tec Sanitização": "narditec",
+      "Bluenardi Hidrosanitária": "bluenardi",
+      "Concerge": "concerge",
+      "Jetfy": "jetfy",
+      "Workclass": "workclass",
+      "Hangar Customs (Oficina)": "hangar-customs",
+      "Zenite Estandes": "zenite-estandes",
+      "Lagoa Lumina (Espaços)": "lagoa-lumina",
+      "Saara Prime Residences": "saara-prime",
+      "Aylyn Ambientes": "aylyn",
+      "Hypersenses": "hypersenses",
+      "Hidrogen Shop": "hidrogen-shop",
+      "Ozoncare": "ozoncare",
+      "Aiolos": "aiolos",
+      "Genesis Acqua": "genesis-acqua",
+      "Nossos Clientes": "nossos-clientes",
+    };
+    return map[item.name] || item.name.toLowerCase().replace(/[^a-z0-9]/g, "-");
+  };
+
+  const allNavLinks = [
+    { blockId: "sobre", name: "Sobre", href: "#sobre" },
+    { blockId: "consultoria-integrada", name: "Consultoria", href: "#consultoria-integrada" },
+    { blockId: "apps", name: "Apps", href: "#apps" },
+    { blockId: "engenharia", name: "Engenharia", href: "#engenharia" },
+    { blockId: "arquitetura-design", name: "Arquitetura", href: "#arquitetura-design" },
+    { blockId: "eventos", name: "Eventos", href: "#eventos" },
+    { blockId: "biofisica-saude", name: "Biofísica", href: "#biofisica-saude" },
+    { blockId: "contato", name: "Contato", href: "#contato" },
+    { blockId: "portal", name: "Portal", href: "/login", isInternal: true },
   ];
+
+  const navLinks = allNavLinks.filter((link) => {
+    if (link.blockId === "portal") return true;
+    return isBlockActive(link.blockId);
+  });
 
   const categories = [
     {
@@ -202,7 +242,7 @@ export default function Home() {
         { name: "Arctecturus (P. Futuros)", url: "/projects/arctecturus", icon: <Building className="w-4 h-4" />, isInternal: true },
         { name: "ArcTec (Design Inteligente)", url: "/projects/arctec", icon: <Cpu className="w-4 h-4" />, isInternal: true },
         { name: "Hangar Customs (Oficina)", url: "https://hangarcustoms.lovable.app", icon: <Car className="w-4 h-4" /> },
-        { name: "GEOBIO (Construção)", url: "/projects/geobio", icon: <Building className="w-4 h-4" />, isInternal: true },
+        { name: "GeoBio | Neovernacular", url: "/projects/geobio", icon: <Building className="w-4 h-4" />, isInternal: true },
         { name: "Aureon", url: "/projects/aureon", icon: <Rocket className="w-4 h-4" />, isInternal: true },
         { name: "Titan", url: "/projects/titan", icon: <Rocket className="w-4 h-4" />, isInternal: true },
         { name: "Horizon", url: "/projects/horizon", icon: <Rocket className="w-4 h-4" />, isInternal: true },
@@ -283,9 +323,13 @@ export default function Home() {
           <motion.div 
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
-            className="text-xl font-bold tracking-[4px] hero-gradient-text"
           >
-            DCA TEC
+            <Link 
+              to="/" 
+              className="text-xl md:text-2xl font-black tracking-[4px] hero-gradient-text hover:opacity-90 transition-opacity"
+            >
+              DCA TEC
+            </Link>
           </motion.div>
 
           {/* Desktop Menu */}
@@ -327,6 +371,12 @@ export default function Home() {
             animate={{ opacity: 1, y: 0 }}
             className="md:hidden absolute top-full left-0 w-full bg-black/95 backdrop-blur-xl py-8 px-6 border-b border-white/10"
           >
+            <div className="mb-6 px-2">
+              <span className="text-xl font-black tracking-[4px] hero-gradient-text">
+                DCA TEC
+              </span>
+            </div>
+
             <ul className="flex flex-col gap-6 list-none">
               {navLinks.map((link) => (
                 <li key={link.name}>
@@ -354,163 +404,144 @@ export default function Home() {
         )}
       </nav>
 
-      {/* Hero Section */}
-      <header className="h-screen flex flex-col justify-center items-center text-center px-6 relative overflow-hidden">
-        <div className="absolute inset-0 pointer-events-none overflow-hidden">
-          <div className="absolute inset-0 bg-gradient-to-b from-black via-transparent to-black z-10 opacity-60" />
-          <video
-            autoPlay
-            loop
-            muted
-            playsInline
-            className="w-full h-full object-cover opacity-20 scale-110 grayscale brightness-150"
-          >
-            <source src="https://assets.mixkit.co/videos/preview/mixkit-digital-connection-of-blue-dots-and-lines-21045-large.mp4" type="video/mp4" />
-          </video>
-          <div className="absolute inset-0 bg-[#00ffe0]/5 blur-[120px] rounded-full scale-50" />
-        </div>
-
-        <motion.h1 
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8 }}
-          className="text-6xl md:text-8xl font-bold tracking-[8px] hero-gradient-text mb-4 relative z-20"
-        >
-          DCA TEC
-        </motion.h1>
-        <motion.p 
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 0.7 }}
-          transition={{ delay: 0.4, duration: 0.8 }}
-          className="text-xl md:text-2xl mb-10 max-w-2xl tracking-[2px] uppercase"
-        >
-          Innovation & Technology Group
-        </motion.p>
-        <motion.a 
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ delay: 0.6, duration: 0.5 }}
-          href="#consultoria-integrada" 
-          className="btn-gradient px-10 py-4 rounded-full text-black font-bold text-lg hover:scale-105 transition-transform flex items-center gap-2"
-        >
-          Explorar Ecossistema <ChevronRight className="w-5 h-5" />
-        </motion.a>
-      </header>
+      {/* Fullbanner Carousel Section */}
+      {isBlockActive("hero_carousel") && (
+        <HeroCarousel 
+          onOpenSchedule={(office) => {
+            setSelectedOffice(office || "Brasil (Sede)");
+            setShowScheduleModal(true);
+          }}
+        />
+      )}
 
       {/* Sobre Section */}
-      <section id="sobre" className="py-32 px-6 max-w-7xl mx-auto">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-        >
-          <h2 className="text-3xl md:text-4xl font-bold text-center mb-16 tracking-[4px] uppercase">Sobre o Grupo</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
-            <p className="text-lg text-white/60 leading-relaxed">
-              O **Grupo DCA TEC** é um ecossistema de inovação focado em engenharia de ponta, tecnologia disruptiva, 
-              arquitetura moderna e ciência aplicada. Conectamos empresas, laboratórios e projetos estratégicos 
-              para criar soluções que moldam o futuro das cidades e das indústrias.
-            </p>
-            <div className="bg-white/5 p-8 rounded-3xl border border-white/10">
-              <h4 className="text-[#00ffe0] font-bold mb-4 flex items-center gap-2">
-                <Factory className="w-5 h-5" /> HOLDING VALE DAS ARAUCÁRIAS SA
-              </h4>
-              <p className="text-sm text-white/50">
-                Todas as empresas do Grupo DCA TEC estão sob gestão estratégica da Holding Vale das Araucárias, 
-                garantindo sinergia, governança e excelência em cada operação.
-              </p>
-            </div>
-          </div>
-        </motion.div>
-      </section>
-
-      {/* Ecossistema Section Header */}
-      <section id="ecossistema-titulo" className="pt-32 pb-16 px-6 text-center">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-        >
-          <h2 className="text-4xl md:text-6xl font-bold tracking-[8px] hero-gradient-text uppercase mb-4">Ecossistema DCA TEC</h2>
-          <div className="w-24 h-1 bg-[#00ffe0] mx-auto rounded-full opacity-50" />
-        </motion.div>
-      </section>
-
-      {/* Categorias Dinâmicas */}
-      {categories.map((cat, catIdx) => (
-        <section key={cat.id} id={cat.id} className={`py-24 px-6 max-w-7xl mx-auto ${catIdx % 2 === 0 ? "" : "bg-white/[0.02] rounded-[60px]"}`}>
+      {isBlockActive("sobre") && (
+        <section id="sobre" className="py-32 px-6 max-w-7xl mx-auto">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
           >
-            <div className="flex items-center gap-4 mb-12 justify-center md:justify-start">
-              <div className="p-3 bg-white/5 rounded-2xl border border-white/10">
-                {cat.icon}
+            <h2 className="text-3xl md:text-4xl font-bold text-center mb-16 tracking-[4px] uppercase">Sobre o Grupo</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
+              <p className="text-lg text-white/60 leading-relaxed">
+                O **Grupo DCA TEC** é um ecossistema de inovação focado em engenharia de ponta, tecnologia disruptiva, 
+                arquitetura moderna e ciência aplicada. Conectamos empresas, laboratórios e projetos estratégicos 
+                para criar soluções que moldam o futuro das cidades e das indústrias.
+              </p>
+              <div className="bg-white/5 p-8 rounded-3xl border border-white/10">
+                <h4 className="text-[#00ffe0] font-bold mb-4 flex items-center gap-2">
+                  <Factory className="w-5 h-5" /> HOLDING VALE DAS ARAUCÁRIAS SA
+                </h4>
+                <p className="text-sm text-white/50">
+                  Todas as empresas do Grupo DCA TEC estão sob gestão estratégica da Holding Vale das Araucárias, 
+                  garantindo sinergia, governança e excelência em cada operação.
+                </p>
               </div>
-              <h2 className="text-2xl md:text-3xl font-bold tracking-[2px] uppercase">{cat.title}</h2>
-            </div>
-            
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {cat.items.map((item, index) => {
-                const isInternal = (item as any).isInternal;
-                const MotionLink = motion.create(Link);
-                const Component = isInternal ? MotionLink : motion.a;
-                const props = isInternal 
-                  ? { to: item.url } 
-                  : { href: item.url, target: "_blank", rel: "noopener noreferrer" };
-
-                return (
-                  <Component 
-                    key={item.name}
-                    initial={{ opacity: 0, scale: 0.95 }}
-                    whileInView={{ opacity: 1, scale: 1 }}
-                    viewport={{ once: true }}
-                    transition={{ delay: index * 0.05 }}
-                    {...props as any}
-                    className="group bg-white/5 p-6 rounded-2xl border border-white/10 hover:bg-white/10 hover:border-[#00ffe0]/40 hover:shadow-[0_0_30px_rgba(0,255,200,0.15)] transition-all flex items-center justify-between"
-                  >
-                    <div className="flex items-center gap-4">
-                      <div className="text-white/40 group-hover:text-[#00ffe0] transition-colors">
-                        {item.icon}
-                      </div>
-                      <span className="text-sm font-semibold tracking-wide group-hover:text-white transition-colors">{item.name}</span>
-                    </div>
-                    <ChevronRight className="w-4 h-4 opacity-0 group-hover:opacity-100 group-hover:translate-x-1 transition-all text-[#00ffe0]" />
-                  </Component>
-                );
-              })}
             </div>
           </motion.div>
         </section>
-      ))}
+      )}
+
+      {/* Ecossistema Section Header */}
+      {categories.some((cat) => isBlockActive(cat.id)) && (
+        <section id="ecossistema-titulo" className="pt-32 pb-16 px-6 text-center">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+          >
+            <h2 className="text-4xl md:text-6xl font-bold tracking-[8px] hero-gradient-text uppercase mb-4">Ecossistema DCA TEC</h2>
+            <div className="w-24 h-1 bg-[#00ffe0] mx-auto rounded-full opacity-50" />
+          </motion.div>
+        </section>
+      )}
+
+      {/* Categorias Dinâmicas */}
+      {categories.map((cat, catIdx) => {
+        if (!isBlockActive(cat.id)) return null;
+
+        const activeItems = cat.items.filter((item) => isProjectActive(getProjectKey(item)));
+        if (activeItems.length === 0) return null;
+
+        return (
+          <section key={cat.id} id={cat.id} className={`py-24 px-6 max-w-7xl mx-auto ${catIdx % 2 === 0 ? "" : "bg-white/[0.02] rounded-[60px]"}`}>
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+            >
+              <div className="flex items-center gap-4 mb-12 justify-center md:justify-start">
+                <div className="p-3 bg-white/5 rounded-2xl border border-white/10">
+                  {cat.icon}
+                </div>
+                <h2 className="text-2xl md:text-3xl font-bold tracking-[2px] uppercase">{cat.title}</h2>
+              </div>
+              
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                {activeItems.map((item, index) => {
+                  const isInternal = (item as any).isInternal;
+                  const MotionLink = motion.create(Link);
+                  const Component = isInternal ? MotionLink : motion.a;
+                  const props = isInternal 
+                    ? { to: item.url } 
+                    : { href: item.url, target: "_blank", rel: "noopener noreferrer" };
+
+                  return (
+                    <Component 
+                      key={item.name}
+                      initial={{ opacity: 0, scale: 0.95 }}
+                      whileInView={{ opacity: 1, scale: 1 }}
+                      viewport={{ once: true }}
+                      transition={{ delay: index * 0.05 }}
+                      {...props as any}
+                      className="group bg-white/5 p-6 rounded-2xl border border-white/10 hover:bg-white/10 hover:border-[#00ffe0]/40 hover:shadow-[0_0_30px_rgba(0,255,200,0.15)] transition-all flex items-center justify-between"
+                    >
+                      <div className="flex items-center gap-4">
+                        <div className="text-white/40 group-hover:text-[#00ffe0] transition-colors">
+                          {item.icon}
+                        </div>
+                        <span className="text-sm font-semibold tracking-wide group-hover:text-white transition-colors">{item.name}</span>
+                      </div>
+                      <ChevronRight className="w-4 h-4 opacity-0 group-hover:opacity-100 group-hover:translate-x-1 transition-all text-[#00ffe0]" />
+                    </Component>
+                  );
+                })}
+              </div>
+            </motion.div>
+          </section>
+        );
+      })}
 
       {/* Polo Industrial Destaque */}
-      <section className="py-32 px-6 max-w-7xl mx-auto">
-        <motion.a 
-          href="https://valedasaraucarias.lovable.app/"
-          target="_blank"
-          className="block relative group overflow-hidden rounded-[40px] border border-[#00ffe0]/20"
-        >
-          <div className="absolute inset-0 bg-gradient-to-r from-black via-black/60 to-transparent z-10" />
-          <img 
-            src="https://images.unsplash.com/photo-1486406146926-c627a92ad1ab" 
-            alt="Polo Industrial"
-            className="w-full h-80 object-cover grayscale group-hover:grayscale-0 transition-all duration-1000"
-            referrerPolicy="no-referrer"
-          />
-          <div className="absolute inset-0 z-20 flex flex-col justify-center p-12">
-            <h3 className="text-3xl font-bold mb-2 hero-gradient-text">POLO INDUSTRIAL TECNOLOGIA</h3>
-            <p className="text-xl text-white/80 mb-6">Vale das Araucárias — Araucárias PR</p>
-            <div className="flex items-center gap-2 text-[#00ffe0] font-bold">
-              Conhecer o Polo <ChevronRight className="w-5 h-5" />
+      {isBlockActive("parceiros") && (
+        <section className="py-32 px-6 max-w-7xl mx-auto">
+          <motion.a 
+            href="http://valedasaraucarias.dca.tec.br/"
+            target="_blank"
+            className="block relative group overflow-hidden rounded-[40px] border border-[#00ffe0]/20"
+          >
+            <div className="absolute inset-0 bg-gradient-to-r from-black via-black/60 to-transparent z-10" />
+            <img 
+              src="https://images.unsplash.com/photo-1486406146926-c627a92ad1ab" 
+              alt="Polo Industrial"
+              className="w-full h-80 object-cover grayscale group-hover:grayscale-0 transition-all duration-1000"
+              referrerPolicy="no-referrer"
+            />
+            <div className="absolute inset-0 z-20 flex flex-col justify-center p-12">
+              <h3 className="text-3xl font-bold mb-2 hero-gradient-text">POLO INDUSTRIAL TECNOLOGIA</h3>
+              <p className="text-xl text-white/80 mb-6">Vale das Araucárias — Araucárias PR</p>
+              <div className="flex items-center gap-2 text-[#00ffe0] font-bold">
+                Conhecer o Polo <ChevronRight className="w-5 h-5" />
+              </div>
             </div>
-          </div>
-        </motion.a>
-      </section>
+          </motion.a>
+        </section>
+      )}
 
       {/* Contato Section */}
-      <section id="contato" className="py-32 px-6 max-w-7xl mx-auto">
+      {isBlockActive("contato") && (
+        <section id="contato" className="py-32 px-6 max-w-7xl mx-auto">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 mb-24">
           <motion.div
             initial={{ opacity: 0, x: -30 }}
@@ -731,6 +762,7 @@ export default function Home() {
           </div>
         </div>
       </section>
+      )}
 
       {/* Scheduling Modal */}
       {showScheduleModal && (
@@ -937,12 +969,17 @@ export default function Home() {
       )}
 
       {/* Footer */}
-      <footer className="py-12 px-6 border-t border-white/5 bg-black">
+      <footer className="py-16 px-6 border-t border-white/5 bg-black">
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-8">
-          <div className="text-white/30 text-[10px] uppercase tracking-[4px]">
-            &copy; {new Date().getFullYear()} DCA TEC GROUP. ALL RIGHTS RESERVED.
+          <div className="flex flex-col sm:flex-row items-center gap-6 text-center sm:text-left">
+            <span className="text-xl font-black tracking-[4px] hero-gradient-text">
+              DCA TEC
+            </span>
+            <div className="text-white/30 text-[10px] uppercase tracking-[4px]">
+              &copy; {new Date().getFullYear()} DCA TEC GROUP. ALL RIGHTS RESERVED.
+            </div>
           </div>
-          <div className="flex gap-8">
+          <div className="flex items-center gap-8">
             <a href="#" className="text-white/30 hover:text-white transition-colors text-[10px] uppercase tracking-widest">Privacy Policy</a>
             <a href="#" className="text-white/30 hover:text-white transition-colors text-[10px] uppercase tracking-widest">Terms of Service</a>
           </div>

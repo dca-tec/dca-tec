@@ -32,11 +32,13 @@
     "react-dom": "^19.0.0",
     "react-hot-toast": "^2.6.0",
     "react-router-dom": "^7.14.0",
+    "three": "^0.186.1",
     "vite": "^6.2.0"
   },
   "devDependencies": {
     "@firebase/eslint-plugin-security-rules": "^0.0.2",
     "@types/node": "^22.14.0",
+    "@types/three": "^0.186.0",
     "autoprefixer": "^10.4.21",
     "eslint": "^9.1.1",
     "tailwindcss": "^4.1.14",
