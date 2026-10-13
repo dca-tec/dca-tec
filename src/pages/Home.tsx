@@ -53,6 +53,7 @@ import { collection, addDoc, serverTimestamp } from "firebase/firestore";
 import { db, handleFirestoreError, OperationType } from "../lib/firebase";
 import HeroCarousel from "../components/HeroCarousel";
 import { useSiteVisibility } from "../lib/siteConfig";
+import { usePresenceRegions } from "../lib/presenceConfig";
 
 export default function Home() {
   const { isBlockActive, isProjectActive } = useSiteVisibility();
@@ -66,60 +67,7 @@ export default function Home() {
   const [scheduleError, setScheduleError] = useState<string | null>(null);
   const [scheduleSuccess, setScheduleSuccess] = useState(false);
 
-  const globalPresence = [
-    {
-      region: "Centrais de Atendimento",
-      description: "Nossos escritórios centrais coordenam o atendimento global. Entre em contato conosco e direcionaremos você para o escritório mais próximo na sua língua nativa.",
-      isCentral: true,
-      locations: [
-        {
-          city: "Brasil (Sede)",
-          name: "Escritórios em São Paulo, Florianópolis, Curitiba e Rio de Janeiro",
-          address: "Atendimento centralizado para toda a América Latina e Europa."
-        },
-        {
-          city: "Estados Unidos",
-          name: "Miami Office",
-          address: "2801 NW 74th Ave #211, Miami, FL 33122, EUA"
-        }
-      ]
-    },
-    {
-      region: "América Latina",
-      countries: ["Peru", "Colômbia", "Venezuela", "Argentina", "Chile"]
-    },
-    {
-      region: "América Central",
-      countries: ["Panamá", "Costa Rica", "México"]
-    },
-    {
-      region: "Europa",
-      countries: [
-        "Inglaterra (Reino Unido)", "Alemanha", "Espanha", "França", "Itália", 
-        "Suíça", "Bélgica", "Irlanda", "Noruega", "Áustria", "Grécia", 
-        "República Checa", "Dinamarca", "Hungria", "Eslováquia", 
-        "Lituânia e Letônia", "Islândia", "Sérvia", "Ucrânia", "Malta", "Mônaco"
-      ]
-    },
-    {
-      region: "Ásia Pacífico",
-      countries: [
-        "Japão (Tokyo)", "China (Hong Kong)", "Indonésia", "Tailândia", 
-        "Nova Zelândia", "Austrália", "Índia", "Filipinas", "Singapura"
-      ]
-    },
-    {
-      region: "Oriente Médio e África",
-      countries: [
-        "Emirados Árabes (Dubai)", "Arábia Saudita", "Catar", "Israel", 
-        "Iraque", "Irã", "Egito", "África do Sul", "Marrocos", "Maurício", "Moçambique"
-      ]
-    },
-    {
-      region: "Rússia",
-      countries: ["Rússia"]
-    }
-  ];
+  const { activeRegions } = usePresenceRegions();
 
   const getProjectKey = (item: { id?: string; name: string; url: string }) => {
     if (item.id) return item.id;
@@ -153,6 +101,14 @@ export default function Home() {
     return map[item.name] || item.name.toLowerCase().replace(/[^a-z0-9]/g, "-");
   };
 
+  const isContatoActive = isBlockActive("contato-direto") || isBlockActive("presenca-global");
+  const navContactName = isBlockActive("presenca-global") && !isBlockActive("contato-direto")
+    ? "Presença Global"
+    : "Contato";
+  const navContactHref = isBlockActive("presenca-global") && !isBlockActive("contato-direto")
+    ? "#presenca-global"
+    : "#contato";
+
   const allNavLinks = [
     { blockId: "sobre", name: "Sobre", href: "#sobre" },
     { blockId: "consultoria-integrada", name: "Consultoria", href: "#consultoria-integrada" },
@@ -161,12 +117,13 @@ export default function Home() {
     { blockId: "arquitetura-design", name: "Arquitetura", href: "#arquitetura-design" },
     { blockId: "eventos", name: "Eventos", href: "#eventos" },
     { blockId: "biofisica-saude", name: "Biofísica", href: "#biofisica-saude" },
-    { blockId: "contato", name: "Contato", href: "#contato" },
+    { blockId: "contato-nav", name: navContactName, href: navContactHref, isVisible: isContatoActive },
     { blockId: "portal", name: "Portal", href: "/login", isInternal: true },
   ];
 
   const navLinks = allNavLinks.filter((link) => {
     if (link.blockId === "portal") return true;
+    if (link.blockId === "contato-nav") return link.isVisible;
     return isBlockActive(link.blockId);
   });
 
@@ -539,228 +496,251 @@ export default function Home() {
         </section>
       )}
 
-      {/* Contato Section */}
-      {isBlockActive("contato") && (
+      {/* Contato & Presença Global Section */}
+      {(isBlockActive("contato-direto") || isBlockActive("presenca-global")) && (
         <section id="contato" className="py-32 px-6 max-w-7xl mx-auto">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 mb-24">
-          <motion.div
-            initial={{ opacity: 0, x: -30 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true }}
-          >
-            <h2 className="text-3xl md:text-4xl font-bold mb-8 tracking-[4px] text-left uppercase">Contato Direto</h2>
-            <div className="space-y-8">
-              <a 
-                href="https://wa.me/5548991796036" 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="flex items-start gap-6 group p-4 rounded-3xl hover:bg-white/5 transition-all border border-transparent hover:border-white/10"
-              >
-                <div className="p-4 bg-green-500/10 rounded-2xl group-hover:scale-110 transition-transform">
-                  <Phone className="text-green-500" />
-                </div>
-                <div>
-                  <h4 className="text-lg font-semibold mb-1">WhatsApp Business</h4>
-                  <p className="text-white/60">+55 (48) 99179-6036</p>
-                </div>
-              </a>
-
-              <div className="flex items-start gap-6 p-4">
-                <div className="p-4 bg-white/5 rounded-2xl">
-                  <Mail className="text-[#00ffe0]" />
-                </div>
-                <div>
-                  <h4 className="text-lg font-semibold mb-1">E-mail Corporativo</h4>
-                  <p className="text-white/60">contato@dca.tec.br</p>
-                </div>
-              </div>
-
-              <div className="flex items-start gap-6 p-4">
-                <div className="p-4 bg-white/5 rounded-2xl">
-                  <Globe className="text-[#00ffe0]" />
-                </div>
-                <div>
-                  <h4 className="text-lg font-semibold mb-1">Portal Oficial</h4>
-                  <p className="text-white/60">dca.tec.br</p>
-                </div>
-              </div>
-            </div>
-          </motion.div>
-
-          <motion.div
-            initial={{ opacity: 0, x: 30 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true }}
-            className="bg-white/5 p-10 rounded-[40px] border border-white/10"
-          >
-            <h3 className="text-xl font-bold mb-6 uppercase tracking-widest">Envie uma Mensagem</h3>
-            <form 
-              onSubmit={async (e: FormEvent<HTMLFormElement>) => {
-                e.preventDefault();
-                setIsSubmitting(true);
-                setSubmitStatus('idle');
-                
-                const formData = new FormData(e.currentTarget);
-                const data = {
-                  name: formData.get('name') as string,
-                  email: formData.get('email') as string,
-                  subject: formData.get('subject') as string,
-                  message: formData.get('message') as string,
-                  source: 'home',
-                  createdAt: serverTimestamp()
-                };
-
-                try {
-                  await addDoc(collection(db, 'leads'), data);
-                  
-                  try {
-                    await fetch('/api/send-email', {
-                      method: 'POST',
-                      headers: { 'Content-Type': 'application/json' },
-                      body: JSON.stringify(data)
-                    });
-                  } catch (emailError) {
-                    console.error("Error sending email notification:", emailError);
-                  }
-
-                  setSubmitStatus('success');
-                  (e.target as HTMLFormElement).reset();
-                } catch (error) {
-                  console.error("Error saving lead:", error);
-                  setSubmitStatus('error');
-                  handleFirestoreError(error, OperationType.CREATE, 'leads');
-                } finally {
-                  setIsSubmitting(false);
-                }
-              }}
-              className="space-y-6"
+        {isBlockActive("contato-direto") && (
+          <div id="contato-direto" className="grid grid-cols-1 lg:grid-cols-2 gap-16 mb-24">
+            <motion.div
+              initial={{ opacity: 0, x: -30 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
             >
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <input 
-                  name="name"
-                  type="text" 
-                  placeholder="Nome" 
-                  className="bg-white/5 border border-white/10 rounded-xl p-4 focus:outline-none focus:border-[#00ffe0] transition-colors appearance-none"
-                  required 
-                  disabled={isSubmitting}
-                />
-                <input 
-                  name="email"
-                  type="email" 
-                  placeholder="Email" 
-                  className="bg-white/5 border border-white/10 rounded-xl p-4 focus:outline-none focus:border-[#00ffe0] transition-colors appearance-none"
-                  required 
-                  disabled={isSubmitting}
-                />
-              </div>
-              <select 
-                name="subject" 
-                className="w-full bg-white/5 border border-white/10 rounded-xl p-4 focus:outline-none focus:border-[#00ffe0] transition-colors appearance-none text-white/60"
-                disabled={isSubmitting}
-                required
-              >
-                <option value="" className="bg-black">Selecione o Assunto</option>
-                <option value="Engenharia" className="bg-black">Assunto: Projetos de Engenharia</option>
-                <option value="Arquitetura" className="bg-black">Assunto: Arquitetura & Urbanismo</option>
-                <option value="Biomedica" className="bg-black">Assunto: Consultoria Biomédica</option>
-                <option value="Tecnologia" className="bg-black">Assunto: Apps & Tecnologia</option>
-                <option value="Investimentos" className="bg-black">Assunto: Investimentos / Holding</option>
-              </select>
-              <textarea 
-                name="message"
-                placeholder="Sua Mensagem" 
-                rows={4}
-                className="w-full bg-white/5 border border-white/10 rounded-xl p-4 focus:outline-none focus:border-[#00ffe0] transition-colors"
-                required
-                disabled={isSubmitting}
-              ></textarea>
-              
-              {submitStatus === 'success' && (
-                <p className="text-green-400 text-sm text-center font-medium">Mensagem Enviada! Obrigado pelo contato. Nossa equipe responderá em breve.</p>
-              )}
-              {submitStatus === 'error' && (
-                <p className="text-red-400 text-sm text-center font-medium">Ocorreu um erro ao enviar. Por favor, tente novamente.</p>
-              )}
+              <h2 className="text-3xl md:text-4xl font-bold mb-8 tracking-[4px] text-left uppercase">Contato Direto</h2>
+              <div className="space-y-8">
+                <a 
+                  href="https://wa.me/5548991796036" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="flex items-start gap-6 group p-4 rounded-3xl hover:bg-white/5 transition-all border border-transparent hover:border-white/10"
+                >
+                  <div className="p-4 bg-green-500/10 rounded-2xl group-hover:scale-110 transition-transform">
+                    <Phone className="text-green-500" />
+                  </div>
+                  <div>
+                    <h4 className="text-lg font-semibold mb-1">WhatsApp Business</h4>
+                    <p className="text-white/60">+55 (48) 99179-6036</p>
+                  </div>
+                </a>
 
-              <button 
-                type="submit" 
-                className="w-full btn-gradient py-4 rounded-xl text-black font-bold text-lg hover:scale-[1.02] transition-transform disabled:opacity-50 disabled:cursor-not-allowed uppercase tracking-widest"
-                disabled={isSubmitting}
+                <div className="flex items-start gap-6 p-4">
+                  <div className="p-4 bg-white/5 rounded-2xl">
+                    <Mail className="text-[#00ffe0]" />
+                  </div>
+                  <div>
+                    <h4 className="text-lg font-semibold mb-1">E-mail Corporativo</h4>
+                    <p className="text-white/60">contato@dca.tec.br</p>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-6 p-4">
+                  <div className="p-4 bg-white/5 rounded-2xl">
+                    <Globe className="text-[#00ffe0]" />
+                  </div>
+                  <div>
+                    <h4 className="text-lg font-semibold mb-1">Portal Oficial</h4>
+                    <p className="text-white/60">dca.tec.br</p>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, x: 30 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              className="bg-white/5 p-10 rounded-[40px] border border-white/10"
+            >
+              <h3 className="text-xl font-bold mb-6 uppercase tracking-widest">Envie uma Mensagem</h3>
+              <form 
+                onSubmit={async (e: FormEvent<HTMLFormElement>) => {
+                  e.preventDefault();
+                  setIsSubmitting(true);
+                  setSubmitStatus('idle');
+                  
+                  const formData = new FormData(e.currentTarget);
+                  const data = {
+                    name: formData.get('name') as string,
+                    email: formData.get('email') as string,
+                    subject: formData.get('subject') as string,
+                    message: formData.get('message') as string,
+                    source: 'home',
+                    createdAt: serverTimestamp()
+                  };
+
+                  try {
+                    await addDoc(collection(db, 'leads'), data);
+                    
+                    try {
+                      await fetch('/api/send-email', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(data)
+                      });
+                    } catch (emailError) {
+                      console.error("Error sending email notification:", emailError);
+                    }
+
+                    setSubmitStatus('success');
+                    (e.target as HTMLFormElement).reset();
+                  } catch (error) {
+                    console.error("Error saving lead:", error);
+                    setSubmitStatus('error');
+                    handleFirestoreError(error, OperationType.CREATE, 'leads');
+                  } finally {
+                    setIsSubmitting(false);
+                  }
+                }}
+                className="space-y-6"
               >
-                {isSubmitting ? 'Enviando...' : 'Enviar Mensagem'}
-              </button>
-            </form>
-          </motion.div>
-        </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <input 
+                    name="name"
+                    type="text" 
+                    placeholder="Nome" 
+                    className="bg-white/5 border border-white/10 rounded-xl p-4 focus:outline-none focus:border-[#00ffe0] transition-colors appearance-none"
+                    required 
+                    disabled={isSubmitting}
+                  />
+                  <input 
+                    name="email"
+                    type="email" 
+                    placeholder="Email" 
+                    className="bg-white/5 border border-white/10 rounded-xl p-4 focus:outline-none focus:border-[#00ffe0] transition-colors appearance-none"
+                    required 
+                    disabled={isSubmitting}
+                  />
+                </div>
+                <select 
+                  name="subject" 
+                  className="w-full bg-white/5 border border-white/10 rounded-xl p-4 focus:outline-none focus:border-[#00ffe0] transition-colors appearance-none text-white/60"
+                  disabled={isSubmitting}
+                  required
+                >
+                  <option value="" className="bg-black">Selecione o Assunto</option>
+                  <option value="Engenharia" className="bg-black">Assunto: Projetos de Engenharia</option>
+                  <option value="Arquitetura" className="bg-black">Assunto: Arquitetura & Urbanismo</option>
+                  <option value="Biomedica" className="bg-black">Assunto: Consultoria Biomédica</option>
+                  <option value="Tecnologia" className="bg-black">Assunto: Apps & Tecnologia</option>
+                  <option value="Investimentos" className="bg-black">Assunto: Investimentos / Holding</option>
+                </select>
+                <textarea 
+                  name="message"
+                  placeholder="Sua Mensagem" 
+                  rows={4}
+                  className="w-full bg-white/5 border border-white/10 rounded-xl p-4 focus:outline-none focus:border-[#00ffe0] transition-colors"
+                  required
+                  disabled={isSubmitting}
+                ></textarea>
+                
+                {submitStatus === 'success' && (
+                  <p className="text-green-400 text-sm text-center font-medium">Mensagem Enviada! Obrigado pelo contato. Nossa equipe responderá em breve.</p>
+                )}
+                {submitStatus === 'error' && (
+                  <p className="text-red-400 text-sm text-center font-medium">Ocorreu um erro ao enviar. Por favor, tente novamente.</p>
+                )}
+
+                <button 
+                  type="submit" 
+                  className="w-full btn-gradient py-4 rounded-xl text-black font-bold text-lg hover:scale-[1.02] transition-transform disabled:opacity-50 disabled:cursor-not-allowed uppercase tracking-widest"
+                  disabled={isSubmitting}
+                >
+                  {isSubmitting ? 'Enviando...' : 'Enviar Mensagem'}
+                </button>
+              </form>
+            </motion.div>
+          </div>
+        )}
 
         {/* Global Presence Grid */}
-        <div className="mt-32">
-          <h2 className="text-3xl font-bold text-center mb-16 tracking-[4px] uppercase">Presença Global</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {globalPresence.map((region, idx) => (
-              <motion.div
-                key={idx}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: idx * 0.05 }}
-                className={`group bg-white/5 border border-white/10 p-8 rounded-[32px] hover:border-[#00ffe0]/40 transition-all flex flex-col ${
-                  region.isCentral ? 'md:col-span-2 lg:col-span-3 bg-gradient-to-br from-[#00ffe0]/5 to-transparent border-[#00ffe0]/20' : ''
-                }`}
-              >
-                <div className="flex-1">
-                  <div className="flex items-center gap-2 text-[#00ffe0] mb-4">
-                    <Globe2 className="w-5 h-5" />
-                    <span className="text-sm font-bold uppercase tracking-widest">{region.region}</span>
-                  </div>
-                  
-                  {region.description && (
-                    <p className="text-sm text-white/60 leading-relaxed mb-8 max-w-3xl">
-                      {region.description}
-                    </p>
-                  )}
+        {isBlockActive("presenca-global") && (
+          <div id="presenca-global" className={isBlockActive("contato-direto") ? "mt-32" : ""}>
+            <h2 className="text-3xl font-bold text-center mb-16 tracking-[4px] uppercase">Presença Global</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {activeRegions.map((region, idx) => {
+                const activeLocations = region.locations ? region.locations.filter(loc => loc.active !== false) : [];
+                return (
+                  <motion.div
+                    key={region.id || idx}
+                    initial={{ opacity: 0, y: 20 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ delay: idx * 0.05 }}
+                    className={`group bg-white/5 border border-white/10 p-8 rounded-[32px] hover:border-[#00ffe0]/40 transition-all flex flex-col ${
+                      region.isCentral ? 'md:col-span-2 lg:col-span-3 bg-gradient-to-br from-[#00ffe0]/5 to-transparent border-[#00ffe0]/20' : ''
+                    }`}
+                  >
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 text-[#00ffe0] mb-4">
+                        <Globe2 className="w-5 h-5" />
+                        <span className="text-sm font-bold uppercase tracking-widest">{region.region}</span>
+                      </div>
+                      
+                      {region.description && (
+                        <p className="text-sm text-white/60 leading-relaxed mb-8 max-w-3xl">
+                          {region.description}
+                        </p>
+                      )}
 
-                  {region.locations ? (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      {region.locations.map((loc, i) => (
-                        <div key={i} className="bg-black/40 p-6 rounded-2xl border border-white/5">
-                          <div className="flex items-center gap-2 text-white mb-2">
-                            <MapPin className="w-4 h-4 text-[#00ffe0]" />
-                            <span className="font-bold">{loc.city}</span>
-                          </div>
-                          <h4 className="text-sm font-medium mb-2 text-white/80">{loc.name}</h4>
-                          <p className="text-xs text-white/40 leading-relaxed">{loc.address}</p>
+                      {region.locations ? (
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                          {activeLocations.map((loc, i) => (
+                            <div key={loc.id || i} className="bg-black/40 p-6 rounded-2xl border border-white/5">
+                              <div className="flex items-center gap-2 text-white mb-2">
+                                <MapPin className="w-4 h-4 text-[#00ffe0]" />
+                                <span className="font-bold">{loc.city}</span>
+                              </div>
+                              <h4 className="text-sm font-medium mb-2 text-white/80">{loc.name}</h4>
+                              <p className="text-xs text-white/40 leading-relaxed font-mono">{loc.address}</p>
+                              {(loc.phone || loc.email) && (
+                                <div className="flex flex-wrap items-center gap-4 text-[11px] text-white/50 pt-3 mt-3 border-t border-white/5">
+                                  {loc.phone && (
+                                    <span className="flex items-center gap-1.5">
+                                      <Phone className="w-3 h-3 text-[#00ffe0]" />
+                                      {loc.phone}
+                                    </span>
+                                  )}
+                                  {loc.email && (
+                                    <span className="flex items-center gap-1.5">
+                                      <Mail className="w-3 h-3 text-[#00ffe0]" />
+                                      {loc.email}
+                                    </span>
+                                  )}
+                                </div>
+                              )}
+                            </div>
+                          ))}
                         </div>
-                      ))}
+                      ) : (
+                        <div className="flex flex-wrap gap-2">
+                          {region.countries?.map((country, i) => (
+                            <span key={i} className="px-3 py-1.5 bg-black/40 border border-white/5 rounded-lg text-xs text-white/60">
+                              {country}
+                            </span>
+                          ))}
+                        </div>
+                      )}
                     </div>
-                  ) : (
-                    <div className="flex flex-wrap gap-2">
-                      {region.countries?.map((country, i) => (
-                        <span key={i} className="px-3 py-1.5 bg-black/40 border border-white/5 rounded-lg text-xs text-white/60">
-                          {country}
-                        </span>
-                      ))}
-                    </div>
-                  )}
-                </div>
-                
-                <button 
-                  onClick={() => {
-                    setSelectedOffice(region.region);
-                    setShowScheduleModal(true);
-                  }}
-                  className={`w-full py-4 rounded-xl text-xs font-bold uppercase tracking-widest transition-all mt-8 ${
-                    region.isCentral 
-                      ? 'bg-[#00ffe0] text-black hover:scale-[1.02]' 
-                      : 'bg-white/5 border border-white/10 hover:bg-[#00ffe0] hover:text-black hover:border-[#00ffe0]'
-                  }`}
-                >
-                  Agendar Reunião - {region.region}
-                </button>
-              </motion.div>
-            ))}
+                    
+                    <button 
+                      onClick={() => {
+                        setSelectedOffice(region.region);
+                        setShowScheduleModal(true);
+                      }}
+                      className={`w-full py-4 rounded-xl text-xs font-bold uppercase tracking-widest transition-all mt-8 ${
+                        region.isCentral 
+                          ? 'bg-[#00ffe0] text-black hover:scale-[1.02]' 
+                          : 'bg-white/5 border border-white/10 hover:bg-[#00ffe0] hover:text-black hover:border-[#00ffe0]'
+                      }`}
+                    >
+                      Agendar Reunião - {region.region}
+                    </button>
+                  </motion.div>
+                );
+              })}
+            </div>
           </div>
-        </div>
+        )}
       </section>
       )}
 

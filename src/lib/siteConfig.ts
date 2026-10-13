@@ -143,13 +143,22 @@ export const DEFAULT_BLOCKS: SiteBlock[] = [
     order: 13,
   },
   {
-    id: "contato",
-    name: "Central de Contato & Propostas VIP",
+    id: "contato-direto",
+    name: "Contato Direto (Canais & Formulário)",
     category: "Estratégia & Contato",
-    description: "Formulário para envio de proposta, canais diretos e presença global.",
-    anchor: "#contato",
-    defaultActive: true,
+    description: "Canais diretos (WhatsApp Business, E-mail Corporativo, Portal) e envio VIP de mensagens.",
+    anchor: "#contato-direto",
+    defaultActive: false,
     order: 14,
+  },
+  {
+    id: "presenca-global",
+    name: "Presença Global (Unidades & Agendamento)",
+    category: "Estratégia & Contato",
+    description: "Centros de Operação e Hubs Internacionais (Brasil, EUA, Europa, LATAM, Ásia) e Agendamento.",
+    anchor: "#presenca-global",
+    defaultActive: true,
+    order: 15,
   },
 ];
 
@@ -1085,7 +1094,7 @@ export function useSiteVisibility() {
   };
 
   const toggleBlock = async (blockId: string, forcedValue?: boolean) => {
-    const current = state.blocks[blockId] !== false;
+    const current = isBlockActive(blockId);
     const nextVal = forcedValue !== undefined ? forcedValue : !current;
     const nextState: VisibilitySettingsState = {
       ...state,
@@ -1158,7 +1167,11 @@ export function useSiteVisibility() {
   };
 
   const isBlockActive = (blockId: string): boolean => {
-    return state.blocks[blockId] !== false;
+    if (state.blocks[blockId] !== undefined) {
+      return state.blocks[blockId] === true;
+    }
+    const def = DEFAULT_BLOCKS.find((b) => b.id === blockId);
+    return def ? def.defaultActive : true;
   };
 
   const isProjectActive = (projectId: string): boolean => {

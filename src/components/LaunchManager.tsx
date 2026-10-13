@@ -29,6 +29,7 @@ import {
   SiteBlock, 
   SiteProjectItem 
 } from "../lib/siteConfig";
+import RegionManager from "./RegionManager";
 
 export default function LaunchManager() {
   const {
@@ -48,7 +49,7 @@ export default function LaunchManager() {
     updatedAt,
   } = useSiteVisibility();
 
-  const [activeSubTab, setActiveSubTab] = useState<"blocks" | "projects">("blocks");
+  const [activeSubTab, setActiveSubTab] = useState<"blocks" | "projects" | "regions">("blocks");
   const [projectSearch, setProjectSearch] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [selectedStatus, setSelectedStatus] = useState<"all" | "active" | "inactive">("all");
@@ -262,6 +263,18 @@ export default function LaunchManager() {
           >
             <Package className="w-4 h-4" />
             Projetos & Soluções ({activeProjectsCount}/{totalProjects})
+          </button>
+
+          <button
+            onClick={() => setActiveSubTab("regions")}
+            className={`flex items-center gap-2.5 px-6 py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider transition-all ${
+              activeSubTab === "regions"
+                ? "bg-[#00ffe0] text-black shadow-lg"
+                : "text-white/60 hover:text-white"
+            }`}
+          >
+            <Globe2 className="w-4 h-4" />
+            Regiões Atendidas & Hubs
           </button>
         </div>
 
@@ -585,6 +598,11 @@ export default function LaunchManager() {
             })}
           </div>
         </div>
+      )}
+
+      {/* Regiões Atendidas & Hubs Sub-tab */}
+      {activeSubTab === "regions" && (
+        <RegionManager />
       )}
     </div>
   );

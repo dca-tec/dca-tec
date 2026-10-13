@@ -37,10 +37,12 @@ import {
   Layers,
   ShieldCheck,
   Lock,
-  Sliders
+  Sliders,
+  Globe2
 } from "lucide-react";
 import CyberSecurityMonitor from "../components/CyberSecurityMonitor";
 import LaunchManager from "../components/LaunchManager";
+import RegionManager from "../components/RegionManager";
 import { 
   collection, 
   query, 
@@ -164,7 +166,7 @@ export default function Dashboard() {
   const [documents, setDocuments] = useState<ClientDocument[]>([]);
   const [biddings, setBiddings] = useState<Bidding[]>([]);
   const [acquisitions, setAcquisitions] = useState<AcquisitionProposal[]>([]);
-  const [activeTab, setActiveTab] = useState<'leads' | 'clients' | 'acquisitions' | 'instructions' | 'cybersecurity' | 'launches'>('leads');
+  const [activeTab, setActiveTab] = useState<'leads' | 'clients' | 'acquisitions' | 'instructions' | 'cybersecurity' | 'launches' | 'regions'>('leads');
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedClient, setSelectedClient] = useState<Acceptance | null>(null);
   const [clientDetailTab, setClientDetailTab] = useState<'info' | 'documents' | 'biddings' | 'checklist' | 'chat'>('info');
@@ -1026,6 +1028,14 @@ export default function Dashboard() {
             </span>
           </button>
 
+          <button onClick={() => setActiveTab('regions')} className={navItemClass('regions')}>
+            <Globe2 className="w-5 h-5 text-[#00ffe0]" />
+            <span className="font-bold text-xs uppercase tracking-[2px]">Regiões Atendidas</span>
+            <span className="ml-auto bg-[#00ffe0]/10 text-[#00ffe0] border border-[#00ffe0]/20 px-2 py-0.5 rounded text-[10px] font-mono">
+              Hubs
+            </span>
+          </button>
+
           {/* Collapsible Group: Clientes */}
           <div className="pt-4">
             <button 
@@ -1147,6 +1157,7 @@ export default function Dashboard() {
                activeTab === 'instructions' ? 'Instruções' : 
                activeTab === 'cybersecurity' ? 'Monitor de Cybersecurity & LGPD' :
                activeTab === 'launches' ? 'Estratégia de Lançamento & Visibilidade' :
+               activeTab === 'regions' ? 'Gestão de Regiões Atendidas & Hubs' :
                activeTab === 'consultoria_especializada' ? 'Consultoria Especializada' :
                'Área em Desenvolvimento'}
             </h1>
@@ -1154,7 +1165,8 @@ export default function Dashboard() {
                {activeTab === 'leads' || activeTab === 'clients' || activeTab === 'acquisitions' 
                  ? 'Acompanhe as interações em tempo real.'
                  : activeTab === 'cybersecurity' ? 'Proteção Zero Trust e Auditoria LGPD Ativa.' 
-                 : activeTab === 'launches' ? 'Controle sequencial de blocos da página inicial e projetos do ecossistema.' :
+                 : activeTab === 'launches' ? 'Controle sequencial de blocos da página inicial e projetos do ecossistema.'
+                 : activeTab === 'regions' ? 'Ative, desative, abra novas unidades ou modifique os endereços de contato da Presença Global.' :
                  'Esta seção está sendo preparada para o próximo rollout.'}
             </p>
           </div>
@@ -1680,6 +1692,7 @@ export default function Dashboard() {
 
           {activeTab === 'cybersecurity' && <CyberSecurityMonitor />}
           {activeTab === 'launches' && <LaunchManager />}
+          {activeTab === 'regions' && <RegionManager />}
         </div>
       </main>
 
