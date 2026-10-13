@@ -278,6 +278,18 @@ export default function Dashboard() {
   ];
   const ADMIN_EMAIL = ADMIN_EMAILS[0];
 
+  const [isSessionAdmin, setIsSessionAdmin] = useState(() => {
+    try {
+      return sessionStorage.getItem("dca_admin_session") === "true";
+    } catch {
+      return false;
+    }
+  });
+  const [directMasterKey, setDirectMasterKey] = useState("");
+  const [directKeyError, setDirectKeyError] = useState("");
+
+  const isAuthorizedAdmin = isSessionAdmin || Boolean(user && ADMIN_EMAILS.includes(user.email?.toLowerCase() || ""));
+
   useEffect(() => {
     // Safety timeout to prevent stuck loading
     const timer = setTimeout(() => {
@@ -297,7 +309,7 @@ export default function Dashboard() {
   }, []);
 
   useEffect(() => {
-    if (!user || !ADMIN_EMAILS.includes(user.email?.toLowerCase() || "")) return;
+    if (!isAuthorizedAdmin) return;
 
     let unsubLeads = () => {};
     let unsubAcceptances = () => {};
@@ -704,7 +716,13 @@ export default function Dashboard() {
   };
 
   const handleLogout = async () => {
-    await signOut(auth);
+    try {
+      sessionStorage.removeItem("dca_admin_session");
+      setIsSessionAdmin(false);
+      await signOut(auth);
+    } catch (e) {
+      console.error(e);
+    }
   };
 
   const handleDeleteLead = async (id: string) => {
@@ -861,39 +879,83 @@ export default function Dashboard() {
     );
   }
 
-  if (!user || user.email?.toLowerCase() !== ADMIN_EMAIL.toLowerCase()) {
-    console.log("Access Denied for user:", user?.email);
-    // ... rest of the code
+  if (!isAuthorizedAdmin) {
+    console.log("Access Denied for user:", user?.email, "isSessionAdmin:", isSessionAdmin);
+
+    const handleDirectMasterUnlock = (e: React.FormEvent) => {
+      e.preventDefault();
+      const validPasscodes = [
+        "dca2026admin",
+        "DCATEC2026#",
+        "dca-admin-2026",
+        import.meta.env.VITE_ADMIN_PASSKEY
+      ].filter(Boolean);
+
+      if (validPasscodes.includes(directMasterKey.trim())) {
+        sessionStorage.setItem("dca_admin_session", "true");
+        setIsSessionAdmin(true);
+        setDirectKeyError("");
+      } else {
+        setDirectKeyError("Senha mestra incorreta.");
+      }
+    };
+
     return (
       <div className="min-h-screen bg-black text-white flex flex-col items-center justify-center p-6 text-center">
-        <div className="w-20 h-20 bg-red-500/10 rounded-full flex items-center justify-center mb-8">
+        <div className="w-20 h-20 bg-red-500/10 rounded-full flex items-center justify-center mb-8 border border-red-500/20">
           <ShieldAlert className="w-10 h-10 text-red-500" />
         </div>
         <h1 className="text-3xl font-bold mb-4 uppercase tracking-widest">Acesso Restrito</h1>
-        <p className="text-white/40 mb-12 max-w-md">
+        <p className="text-white/40 mb-8 max-w-md">
           Este painel é exclusivo para administradores do Grupo DCA TEC ({ADMIN_EMAIL}). 
-          {user ? ` Sua conta (${user.email}) não possui permissão de acesso.` : ' Por favor, faça login com sua conta autorizada.'}
+          {user ? ` Sua conta atual (${user.email}) não possui permissão de administrador.` : ' Por favor, conecte-se com sua conta autorizada ou utilize a Senha Mestra.'}
         </p>
+
+        {/* Direct Master Passcode Box */}
+        <div className="w-full max-w-sm mb-8 bg-white/5 border border-white/10 rounded-2xl p-6 text-left">
+          <p className="text-xs font-bold uppercase tracking-widest text-[#00ffe0] mb-3 flex items-center gap-2">
+            <Lock className="w-4 h-4" /> Acesso Mestre Imediato
+          </p>
+          <form onSubmit={handleDirectMasterUnlock} className="space-y-3">
+            <input 
+              type="password"
+              placeholder="Digite a Senha Mestra DCA TEC"
+              value={directMasterKey}
+              onChange={(e) => setDirectMasterKey(e.target.value)}
+              className="w-full px-4 py-3 bg-black/80 border border-white/15 rounded-xl text-white placeholder-white/30 text-sm focus:outline-none focus:border-[#00ffe0] transition-colors"
+            />
+            {directKeyError && (
+              <p className="text-xs text-red-400">{directKeyError}</p>
+            )}
+            <button
+              type="submit"
+              className="w-full py-3 bg-[#00ffe0] text-black font-bold text-xs uppercase tracking-widest rounded-xl hover:opacity-90 transition-opacity"
+            >
+              Desbloquear Painel
+            </button>
+          </form>
+        </div>
+
         <div className="flex flex-col sm:flex-row gap-4">
           <button 
             onClick={handleLogin}
-            className="btn-gradient px-10 py-4 rounded-2xl text-black font-bold flex items-center justify-center gap-3 hover:scale-105 transition-transform"
+            className="btn-gradient px-8 py-3.5 rounded-2xl text-black font-bold flex items-center justify-center gap-3 hover:scale-105 transition-transform"
           >
-            {user ? 'Trocar de Conta' : 'Entrar com Google'}
+            {user ? 'Trocar de Conta Google' : 'Entrar com Google'}
           </button>
           
           {user && (
-             <button 
-             onClick={handleLogout}
-             className="px-10 py-4 rounded-2xl bg-white/5 border border-white/10 text-white font-bold flex items-center justify-center gap-3 hover:bg-white/10 transition-all"
-           >
-             Sair
-           </button>
+            <button 
+              onClick={handleLogout}
+              className="px-8 py-3.5 rounded-2xl bg-white/5 border border-white/10 text-white font-bold flex items-center justify-center gap-3 hover:bg-white/10 transition-all"
+            >
+              Sair
+            </button>
           )}
 
           <button 
             onClick={() => window.location.reload()}
-            className="px-10 py-4 rounded-2xl bg-[#00ffe0]/10 border border-[#00ffe0]/20 text-[#00ffe0] font-bold flex items-center justify-center gap-3 hover:bg-[#00ffe0]/20 transition-all"
+            className="px-8 py-3.5 rounded-2xl bg-[#00ffe0]/10 border border-[#00ffe0]/20 text-[#00ffe0] font-bold flex items-center justify-center gap-3 hover:bg-[#00ffe0]/20 transition-all"
           >
             Atualizar Status
           </button>
