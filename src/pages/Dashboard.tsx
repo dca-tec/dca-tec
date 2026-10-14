@@ -43,6 +43,7 @@ import {
 import CyberSecurityMonitor from "../components/CyberSecurityMonitor";
 import LaunchManager from "../components/LaunchManager";
 import RegionManager from "../components/RegionManager";
+import BannerManager from "../components/BannerManager";
 import { 
   collection, 
   query, 
@@ -65,6 +66,7 @@ import {
 } from "firebase/auth";
 import { db, auth, googleProvider, handleFirestoreError, OperationType } from "../lib/firebase";
 import { useNavigate } from "react-router-dom";
+import { formatDate, formatDateTime, formatTime } from "../lib/dateUtils";
 
 interface Lead {
   id: string;
@@ -180,7 +182,7 @@ export default function Dashboard() {
   const [documents, setDocuments] = useState<ClientDocument[]>([]);
   const [biddings, setBiddings] = useState<Bidding[]>([]);
   const [acquisitions, setAcquisitions] = useState<AcquisitionProposal[]>([]);
-  const [activeTab, setActiveTab] = useState<'leads' | 'clients' | 'acquisitions' | 'instructions' | 'cybersecurity' | 'launches' | 'regions'>('leads');
+  const [activeTab, setActiveTab] = useState<'leads' | 'clients' | 'acquisitions' | 'instructions' | 'cybersecurity' | 'launches' | 'banners' | 'regions'>('leads');
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedClient, setSelectedClient] = useState<Acceptance | null>(null);
   const [clientDetailTab, setClientDetailTab] = useState<'info' | 'documents' | 'biddings' | 'checklist' | 'chat'>('info');
@@ -441,13 +443,13 @@ export default function Dashboard() {
   }, [selectedClient, user]);
 
   const handleSendMessage = async () => {
-    if (!newMessage.trim() || !selectedClient || !user) return;
+    if (!newMessage.trim() || !selectedClient) return;
 
     try {
       await addDoc(collection(db, "messages"), {
         clientId: selectedClient.id,
-        senderId: user.uid,
-        senderName: "DCA ADMIN",
+        senderId: user?.uid || "admin_master",
+        senderName: user?.displayName || "DCA ADMIN",
         text: newMessage.trim(),
         createdAt: serverTimestamp()
       });
@@ -835,7 +837,7 @@ export default function Dashboard() {
     if (activeTab === 'leads') {
       csvContent += "Nome,Email,Telefone,Empresa/CNPJ,Assunto,Origem,Data\n";
       leads.forEach(l => {
-        const date = l.createdAt?.toDate().toLocaleString('pt-BR') || "";
+        const date = formatDateTime(l.createdAt);
         csvContent += `"${l.name}","${l.email}","${l.phone || ""}","${l.company || ""}","${l.subject || ""}","${l.source}","${date}"\n`;
       });
     } else if (activeTab === 'acquisitions') {
@@ -845,13 +847,13 @@ export default function Dashboard() {
       
       csvContent += "Empresa,Proprietario,Email,Telefone,Valuation,Codigo,Status,Data,Termos\n";
       items.forEach(a => {
-        const date = a.createdAt?.toDate().toLocaleString('pt-BR') || "";
+        const date = formatDateTime(a.createdAt);
         csvContent += `"${a.companyName}","${a.ownerName}","${a.ownerEmail}","${a.ownerPhone || ""}","${a.valuation}","${a.accessCode}","${a.status}","${date}","${a.terms.replace(/"/g, '""')}"\n`;
       });
     } else {
       csvContent += "Proposta,Cliente,Email,Valor,Portal,Status,Data\n";
       clients.forEach(a => {
-        const date = a.acceptedAt?.toDate().toLocaleString('pt-BR') || "";
+        const date = formatDateTime(a.acceptedAt);
         csvContent += `"${a.proposalId}","${a.clientName || ""}","${a.clientEmail || ""}","${a.proposalValue || ""}","${a.niche || ""}","${a.status}","${date}"\n`;
       });
     }
@@ -1083,6 +1085,14 @@ export default function Dashboard() {
             </span>
           </button>
 
+          <button onClick={() => setActiveTab('banners')} className={navItemClass('banners')}>
+            <Layers className="w-5 h-5 text-[#00ffe0]" />
+            <span className="font-bold text-xs uppercase tracking-[2px]">Banners do Topo</span>
+            <span className="ml-auto bg-[#00ffe0]/10 text-[#00ffe0] border border-[#00ffe0]/20 px-2 py-0.5 rounded text-[10px] font-mono">
+              Hero
+            </span>
+          </button>
+
           <button onClick={() => setActiveTab('regions')} className={navItemClass('regions')}>
             <Globe2 className="w-5 h-5 text-[#00ffe0]" />
             <span className="font-bold text-xs uppercase tracking-[2px]">Regiões Atendidas</span>
@@ -1186,7 +1196,7 @@ export default function Dashboard() {
         <div className="mt-auto pt-8 border-t border-white/5">
           <div className="flex items-center gap-4 mb-6">
             {user?.photoURL ? (
-              <img src={user.photoURL} alt={user.displayName || "Admin"} className="w-10 h-10 rounded-full border border-white/10" />
+              <img src={user?.photoURL} alt={user?.displayName || "Admin"} className="w-10 h-10 rounded-full border border-white/10" />
             ) : (
               <div className="w-10 h-10 rounded-full bg-[#00ffe0]/10 border border-[#00ffe0]/30 flex items-center justify-center text-[#00ffe0] font-black text-xs shrink-0">
                 DCA
@@ -1218,6 +1228,7 @@ export default function Dashboard() {
                activeTab === 'instructions' ? 'Instruções' : 
                activeTab === 'cybersecurity' ? 'Monitor de Cybersecurity & LGPD' :
                activeTab === 'launches' ? 'Estratégia de Lançamento & Visibilidade' :
+               activeTab === 'banners' ? 'Gestão de Banners do Topo' :
                activeTab === 'regions' ? 'Gestão de Regiões Atendidas & Hubs' :
                activeTab === 'consultoria_especializada' ? 'Consultoria Especializada' :
                'Área em Desenvolvimento'}
@@ -1227,6 +1238,7 @@ export default function Dashboard() {
                  ? 'Acompanhe as interações em tempo real.'
                  : activeTab === 'cybersecurity' ? 'Proteção Zero Trust e Auditoria LGPD Ativa.' 
                  : activeTab === 'launches' ? 'Controle sequencial de blocos da página inicial e projetos do ecossistema.'
+                 : activeTab === 'banners' ? 'Ative, inative, edite ou crie novos banners do carrossel principal da página inicial.'
                  : activeTab === 'regions' ? 'Ative, desative, abra novas unidades ou modifique os endereços de contato da Presença Global.' :
                  'Esta seção está sendo preparada para o próximo rollout.'}
             </p>
@@ -1509,7 +1521,7 @@ export default function Dashboard() {
                         <div>
                           <p className="text-[10px] text-white/20 uppercase font-black tracking-widest mb-1">Criada em</p>
                           <p className="text-xs text-white/60 font-medium">
-                            {acq.createdAt?.toDate().toLocaleDateString('pt-BR')}
+                            {formatDate(acq.createdAt)}
                           </p>
                         </div>
                       </div>
@@ -1595,7 +1607,7 @@ export default function Dashboard() {
                     </div>
                     <div className="flex items-center gap-2">
                       <Calendar className="w-4 h-4 text-[#00ffe0]" />
-                      {lead.createdAt?.toDate().toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                      {formatDateTime(lead.createdAt)}
                     </div>
                   </div>
 
@@ -1692,7 +1704,7 @@ export default function Dashboard() {
                     </div>
                     <div className="flex items-center gap-2">
                       <Calendar className="w-4 h-4 text-[#00ffe0]" />
-                      {acc.acceptedAt?.toDate().toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                      {formatDateTime(acc.acceptedAt)}
                     </div>
                     {acc.cnpj && (
                       <div className="flex items-center gap-2">
@@ -1753,6 +1765,7 @@ export default function Dashboard() {
 
           {activeTab === 'cybersecurity' && <CyberSecurityMonitor />}
           {activeTab === 'launches' && <LaunchManager />}
+          {activeTab === 'banners' && <BannerManager />}
           {activeTab === 'regions' && <RegionManager />}
         </div>
       </main>
@@ -2052,7 +2065,7 @@ export default function Dashboard() {
                               {msg.text}
                             </div>
                             <span className="text-[10px] text-white/20 mt-1 px-1">
-                              {msg.senderName} • {msg.createdAt?.toDate().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+                              {msg.senderName} • {formatTime(msg.createdAt)}
                             </span>
                           </div>
                         ))

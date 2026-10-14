@@ -30,6 +30,8 @@ import {
   SiteProjectItem 
 } from "../lib/siteConfig";
 import RegionManager from "./RegionManager";
+import BannerManager from "./BannerManager";
+import { useHeroBanners } from "../lib/bannerConfig";
 
 export default function LaunchManager() {
   const {
@@ -49,7 +51,8 @@ export default function LaunchManager() {
     updatedAt,
   } = useSiteVisibility();
 
-  const [activeSubTab, setActiveSubTab] = useState<"blocks" | "projects" | "regions">("blocks");
+  const { banners, activeBanners } = useHeroBanners();
+  const [activeSubTab, setActiveSubTab] = useState<"blocks" | "banners" | "projects" | "regions">("blocks");
   const [projectSearch, setProjectSearch] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [selectedStatus, setSelectedStatus] = useState<"all" | "active" | "inactive">("all");
@@ -254,6 +257,18 @@ export default function LaunchManager() {
           </button>
 
           <button
+            onClick={() => setActiveSubTab("banners")}
+            className={`flex items-center gap-2.5 px-6 py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider transition-all ${
+              activeSubTab === "banners"
+                ? "bg-[#00ffe0] text-black shadow-lg"
+                : "text-white/60 hover:text-white"
+            }`}
+          >
+            <Sliders className="w-4 h-4" />
+            Banners do Topo ({activeBanners.length}/{banners.length})
+          </button>
+
+          <button
             onClick={() => setActiveSubTab("projects")}
             className={`flex items-center gap-2.5 px-6 py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider transition-all ${
               activeSubTab === "projects"
@@ -392,6 +407,23 @@ export default function LaunchManager() {
                         <span className="font-mono font-bold text-[#00ffe0]">
                           {activeProjectsInBlock.length} / {projectsInBlock.length} ativos
                         </span>
+                      </div>
+                    )}
+
+                    {/* Sub-info if block is hero_carousel */}
+                    {block.id === "hero_carousel" && (
+                      <div className="mb-4 p-3.5 rounded-2xl bg-[#00ffe0]/5 border border-[#00ffe0]/20 text-[11px] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2.5">
+                        <div>
+                          <span className="text-white/60">Banners individuais: </span>
+                          <span className="font-mono font-bold text-[#00ffe0]">{activeBanners.length} de {banners.length} ativos</span>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => setActiveSubTab("banners")}
+                          className="px-3 py-1 rounded-lg bg-[#00ffe0] text-black font-extrabold text-[10px] uppercase tracking-wider flex items-center gap-1.5 hover:bg-[#00ffe0]/80 shadow-[0_0_15px_rgba(0,255,224,0.2)] transition-all"
+                        >
+                          <Sliders className="w-3 h-3" /> Gerenciar Banners
+                        </button>
                       </div>
                     )}
                   </div>
@@ -598,6 +630,11 @@ export default function LaunchManager() {
             })}
           </div>
         </div>
+      )}
+
+      {/* Banners do Topo Sub-tab */}
+      {activeSubTab === "banners" && (
+        <BannerManager />
       )}
 
       {/* Regiões Atendidas & Hubs Sub-tab */}

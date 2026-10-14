@@ -15,126 +15,39 @@ import {
   Globe2 
 } from "lucide-react";
 import { Link } from "react-router-dom";
+import { useHeroBanners, HeroBannerItem, HeroBannerCta } from "../lib/bannerConfig";
 
 export interface HeroCarouselProps {
   onOpenSchedule?: (officeName?: string) => void;
 }
 
-export interface SlideData {
-  id: string;
-  badge: string;
-  title: string;
-  subtitle: string;
-  image?: string;
-  video?: string;
-  tags: { label: string; icon: React.ReactNode }[];
-  primaryCta: {
-    label: string;
-    href: string;
-    isExternal?: boolean;
-    isInternalRoute?: boolean;
-    onClickSchedule?: boolean;
-  };
-  secondaryCta?: {
-    label: string;
-    href: string;
-    isExternal?: boolean;
-    isInternalRoute?: boolean;
-    onClickSchedule?: boolean;
-  };
-}
-
-export const slides: SlideData[] = [
-  {
-    id: "expo-stand",
-    badge: "DCA TEC // PRESENÇA GLOBAL & EXPO DE TECNOLOGIA",
-    title: "TECNOLOGIA QUE CONECTA PESSOAS E POSSIBILIDADES",
-    subtitle: "Soluções integradas de inteligência artificial, biometria de última geração, ciberdefesa e infraestruturas tecnológicas sob medida.",
-    image: "/src/assets/images/dca_expo_stand_1791859526860.jpg",
-    tags: [
-      { label: "Biometria Avançada", icon: <Eye className="w-3.5 h-3.5 text-[#00ffe0]" /> },
-      { label: "Inteligência Artificial", icon: <Cpu className="w-3.5 h-3.5 text-[#00ffe0]" /> },
-      { label: "Cibersegurança", icon: <ShieldCheck className="w-3.5 h-3.5 text-[#00ffe0]" /> },
-      { label: "Soluções Sob Medida", icon: <Sparkles className="w-3.5 h-3.5 text-[#00ffe0]" /> },
-    ],
-    primaryCta: {
-      label: "Explorar Ecossistema",
-      href: "#consultoria-integrada",
-    },
-    secondaryCta: {
-      label: "Agendar Reunião VIP",
-      href: "#",
-      onClickSchedule: true,
-    },
-  },
-  {
-    id: "tech-campus",
-    badge: "ECOSSISTEMA DCA TEC",
-    title: "INNOVATION & TECHNOLOGY GROUP",
-    subtitle: "Conectamos empresas, laboratórios científicos, engenharia de ponta e arquitetura disruptiva para construir o futuro das cidades e das indústrias.",
-    image: "/src/assets/images/dca_tech_hub_1791859552329.jpg",
-    tags: [
-      { label: "Engenharia & Aeroespacial", icon: <Rocket className="w-3.5 h-3.5 text-[#00ffe0]" /> },
-      { label: "Biofísica & Saúde", icon: <Sparkles className="w-3.5 h-3.5 text-[#00ffe0]" /> },
-      { label: "Holding & Gestão", icon: <Factory className="w-3.5 h-3.5 text-[#00ffe0]" /> },
-      { label: "Presença Global", icon: <Globe2 className="w-3.5 h-3.5 text-[#00ffe0]" /> },
-    ],
-    primaryCta: {
-      label: "Conhecer o Grupo",
-      href: "#sobre",
-    },
-    secondaryCta: {
-      label: "Presença Internacional",
-      href: "#contato",
-    },
-  },
-  {
-    id: "polo-industrial",
-    badge: "HOLDING VALE DAS ARAUCÁRIAS SA",
-    title: "POLO INDUSTRIAL DE ALTA TECNOLOGIA",
-    subtitle: "Parque tecnológico e complexo empresarial integrando centros de manufatura 6.0, laboratórios e governança de excelência.",
-    image: "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=2000&q=80",
-    tags: [
-      { label: "Indústria 6.0", icon: <Factory className="w-3.5 h-3.5 text-[#00ffe0]" /> },
-      { label: "Infraestrutura Verde", icon: <Sparkles className="w-3.5 h-3.5 text-[#00ffe0]" /> },
-      { label: "Segurança de Dados", icon: <ShieldCheck className="w-3.5 h-3.5 text-[#00ffe0]" /> },
-    ],
-    primaryCta: {
-      label: "Acessar Portal do Polo",
-      href: "http://valedasaraucarias.dca.tec.br/",
-      isExternal: true,
-    },
-    secondaryCta: {
-      label: "Projetos de Engenharia",
-      href: "#engenharia",
-    },
-  },
-  {
-    id: "automacao-ind",
-    badge: "TRANSFORMAÇÃO DIGITAL INDUSTRIAL",
-    title: "AUTOMAÇÕES & ENGENHARIA COGNITIVA",
-    subtitle: "Pipelines operacionais inteligentes, robótica autônoma, IoT industrial e inteligência fiscal para maximizar performance.",
-    video: "https://assets.mixkit.co/videos/preview/mixkit-digital-connection-of-blue-dots-and-lines-21045-large.mp4",
-    tags: [
-      { label: "Automação Autônoma", icon: <Cpu className="w-3.5 h-3.5 text-[#00ffe0]" /> },
-      { label: "Consultoria Fiscal", icon: <ShieldCheck className="w-3.5 h-3.5 text-[#00ffe0]" /> },
-      { label: "Governança 360°", icon: <Sparkles className="w-3.5 h-3.5 text-[#00ffe0]" /> },
-    ],
-    primaryCta: {
-      label: "Ver Automações 6.0",
-      href: "/automacao",
-      isInternalRoute: true,
-    },
-    secondaryCta: {
-      label: "Falar com Consultor",
-      href: "#contato",
-    },
-  },
-];
-
 const SLIDE_DURATION = 7000; // 7 seconds per slide
 
+const getTagIcon = (label: string) => {
+  const l = label.toLowerCase();
+  if (l.includes("bio") || l.includes("olho") || l.includes("vis") || l.includes("biometria")) {
+    return <Eye className="w-3.5 h-3.5 text-[#00ffe0]" />;
+  }
+  if (l.includes("ia") || l.includes("inteligência") || l.includes("auto") || l.includes("chip") || l.includes("cpu") || l.includes("robô")) {
+    return <Cpu className="w-3.5 h-3.5 text-[#00ffe0]" />;
+  }
+  if (l.includes("seguran") || l.includes("cyber") || l.includes("fiscal") || l.includes("defesa") || l.includes("dado") || l.includes("ciber")) {
+    return <ShieldCheck className="w-3.5 h-3.5 text-[#00ffe0]" />;
+  }
+  if (l.includes("foguete") || l.includes("aero") || l.includes("engenharia") || l.includes("futuro") || l.includes("rocket")) {
+    return <Rocket className="w-3.5 h-3.5 text-[#00ffe0]" />;
+  }
+  if (l.includes("fábrica") || l.includes("indústria") || l.includes("holding") || l.includes("manufat") || l.includes("complexo") || l.includes("polo")) {
+    return <Factory className="w-3.5 h-3.5 text-[#00ffe0]" />;
+  }
+  if (l.includes("global") || l.includes("mundo") || l.includes("internacional") || l.includes("país") || l.includes("rede")) {
+    return <Globe2 className="w-3.5 h-3.5 text-[#00ffe0]" />;
+  }
+  return <Sparkles className="w-3.5 h-3.5 text-[#00ffe0]" />;
+};
+
 export default function HeroCarousel({ onOpenSchedule }: HeroCarouselProps) {
+  const { activeBanners } = useHeroBanners();
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isPlaying, setIsPlaying] = useState(true);
   const [progress, setProgress] = useState(0);
@@ -143,26 +56,32 @@ export default function HeroCarousel({ onOpenSchedule }: HeroCarouselProps) {
   const animationFrameRef = useRef<number | null>(null);
   const startTimeRef = useRef<number>(Date.now());
 
-  const currentSlide = slides[currentIndex];
+  // Keep index within active banners boundaries
+  const totalSlides = activeBanners.length;
+  const safeIndex = totalSlides > 0 ? Math.min(currentIndex, totalSlides - 1) : 0;
+  const currentSlide: HeroBannerItem | undefined = activeBanners[safeIndex];
 
   const goToSlide = useCallback((index: number, newDirection = 1) => {
+    if (totalSlides === 0) return;
     setDirection(newDirection);
-    setCurrentIndex(index);
+    setCurrentIndex(index % totalSlides);
     setProgress(0);
     startTimeRef.current = Date.now();
-  }, []);
+  }, [totalSlides]);
 
   const nextSlide = useCallback(() => {
-    goToSlide((currentIndex + 1) % slides.length, 1);
-  }, [currentIndex, goToSlide]);
+    if (totalSlides === 0) return;
+    goToSlide((safeIndex + 1) % totalSlides, 1);
+  }, [safeIndex, totalSlides, goToSlide]);
 
   const prevSlide = useCallback(() => {
-    goToSlide((currentIndex - 1 + slides.length) % slides.length, -1);
-  }, [currentIndex, goToSlide]);
+    if (totalSlides === 0) return;
+    goToSlide((safeIndex - 1 + totalSlides) % totalSlides, -1);
+  }, [safeIndex, totalSlides, goToSlide]);
 
   // Handle auto-advance and progress bar
   useEffect(() => {
-    if (!isPlaying) {
+    if (!isPlaying || totalSlides <= 1) {
       if (timerRef.current) clearInterval(timerRef.current);
       if (animationFrameRef.current) cancelAnimationFrame(animationFrameRef.current);
       return;
@@ -187,7 +106,7 @@ export default function HeroCarousel({ onOpenSchedule }: HeroCarouselProps) {
     return () => {
       if (animationFrameRef.current) cancelAnimationFrame(animationFrameRef.current);
     };
-  }, [currentIndex, isPlaying, nextSlide]);
+  }, [safeIndex, isPlaying, nextSlide, totalSlides]);
 
   // Keyboard navigation
   useEffect(() => {
@@ -202,10 +121,25 @@ export default function HeroCarousel({ onOpenSchedule }: HeroCarouselProps) {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [prevSlide, nextSlide]);
 
+  if (totalSlides === 0 || !currentSlide) {
+    return (
+      <header className="relative w-full py-28 px-6 flex flex-col items-center justify-center text-center bg-black/80 border-b border-white/10">
+        <Sparkles className="w-10 h-10 text-[#00ffe0] mb-4 animate-pulse" />
+        <h2 className="text-2xl font-bold uppercase tracking-wider text-white">
+          DCA TEC // Inovação e Tecnologia
+        </h2>
+        <p className="text-sm text-white/50 max-w-md mt-2">
+          Nenhum banner ativo no momento. Ative os banners desejados no painel de administração.
+        </p>
+      </header>
+    );
+  }
+
   const renderCta = (
-    cta: SlideData["primaryCta"],
+    cta: HeroBannerCta,
     isPrimary: boolean
   ) => {
+    if (!cta || !cta.label) return null;
     const baseClasses = isPrimary
       ? "btn-gradient px-8 py-4 rounded-full text-black font-bold text-sm tracking-wider uppercase hover:scale-105 transition-all flex items-center justify-center gap-2 shadow-[0_0_30px_rgba(0,255,224,0.3)]"
       : "px-8 py-4 bg-white/10 hover:bg-white/20 border border-white/20 rounded-full text-white font-bold text-sm tracking-wider uppercase backdrop-blur-md hover:border-[#00ffe0]/40 transition-all flex items-center justify-center gap-2";
@@ -339,13 +273,13 @@ export default function HeroCarousel({ onOpenSchedule }: HeroCarouselProps) {
             {/* Feature Pills (from the banner) */}
             {currentSlide.tags && currentSlide.tags.length > 0 && (
               <div className="flex flex-wrap gap-2.5 sm:gap-3 mb-10">
-                {currentSlide.tags.map((tag, idx) => (
+                {currentSlide.tags.map((tagLabel, idx) => (
                   <div
                     key={idx}
                     className="flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-white/[0.06] border border-white/10 backdrop-blur-md text-xs font-medium text-white/90"
                   >
-                    {tag.icon}
-                    <span>{tag.label}</span>
+                    {getTagIcon(tagLabel)}
+                    <span>{tagLabel}</span>
                   </div>
                 ))}
               </div>
@@ -373,12 +307,12 @@ export default function HeroCarousel({ onOpenSchedule }: HeroCarouselProps) {
         <div className="flex flex-col sm:flex-row items-center justify-between gap-6">
           {/* Slide Indicator Tabs */}
           <div className="flex flex-wrap gap-2 sm:gap-3 items-center">
-            {slides.map((slide, idx) => {
-              const isActive = idx === currentIndex;
+            {activeBanners.map((slide, idx) => {
+              const isActive = idx === safeIndex;
               return (
                 <button
                   key={slide.id}
-                  onClick={() => goToSlide(idx, idx > currentIndex ? 1 : -1)}
+                  onClick={() => goToSlide(idx, idx > safeIndex ? 1 : -1)}
                   className={`group relative px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider transition-all flex items-center gap-2 ${
                     isActive
                       ? "bg-white/15 text-[#00ffe0] border border-[#00ffe0]/40 shadow-[0_0_15px_rgba(0,255,224,0.15)]"
@@ -387,10 +321,7 @@ export default function HeroCarousel({ onOpenSchedule }: HeroCarouselProps) {
                 >
                   <span className="text-[10px] text-white/40 group-hover:text-white">0{idx + 1}</span>
                   <span className="hidden md:inline">
-                    {idx === 0 && "Expo & Presença"}
-                    {idx === 1 && "Innovation Group"}
-                    {idx === 2 && "Polo Industrial"}
-                    {idx === 3 && "Automação 6.0"}
+                    {slide.navLabel || slide.title.slice(0, 16)}
                   </span>
                 </button>
               );

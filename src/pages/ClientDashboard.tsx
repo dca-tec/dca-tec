@@ -30,6 +30,7 @@ import { auth, db, handleFirestoreError, OperationType } from "../lib/firebase";
 import { onAuthStateChanged, signOut } from "firebase/auth";
 import { collection, query, where, onSnapshot, doc, updateDoc, serverTimestamp, getDocs, addDoc, orderBy } from "firebase/firestore";
 import { useNavigate } from "react-router-dom";
+import { formatTime, formatDateTime } from "../lib/dateUtils";
 
 type Department = 'licitacoes' | 'tributaria' | 'ti' | 'design' | 'marketing' | 'web' | 'engenharia' | 'chat';
 
@@ -319,7 +320,7 @@ export default function ClientDashboard() {
                         {msg.text}
                       </div>
                       <span className="text-[10px] text-white/20 mt-2 px-2">
-                        {msg.senderName} • {msg.createdAt?.toDate().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+                        {msg.senderName} • {formatTime(msg.createdAt)}
                       </span>
                     </div>
                   ))

@@ -1,5 +1,5 @@
 import { initializeApp } from 'firebase/app';
-import { getFirestore, doc, getDocFromServer } from 'firebase/firestore';
+import { initializeFirestore, getFirestore, doc, getDocFromServer } from 'firebase/firestore';
 import { getAuth, GoogleAuthProvider } from 'firebase/auth';
 import firebaseConfig from '../../firebase-applet-config.json';
 
@@ -16,7 +16,19 @@ const resolvedConfig = {
 
 // Initialize Firebase
 const app = initializeApp(resolvedConfig);
-export const db = getFirestore(app, resolvedConfig.firestoreDatabaseId);
+
+// Initialize Firestore safely
+let firestoreInstance;
+try {
+  firestoreInstance = initializeFirestore(app, {
+    experimentalAutoDetectLongPolling: false,
+    experimentalForceLongPolling: false,
+  }, resolvedConfig.firestoreDatabaseId);
+} catch (e) {
+  firestoreInstance = getFirestore(app, resolvedConfig.firestoreDatabaseId);
+}
+
+export const db = firestoreInstance;
 export const auth = getAuth(app);
 export const googleProvider = new GoogleAuthProvider();
 export const currentFirebaseConfig = resolvedConfig;
