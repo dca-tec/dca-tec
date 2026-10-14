@@ -28,8 +28,11 @@ try {
   firestoreInstance = getFirestore(app, resolvedConfig.firestoreDatabaseId);
 }
 
+import { getStorage } from 'firebase/storage';
+
 export const db = firestoreInstance;
 export const auth = getAuth(app);
+export const storage = getStorage(app);
 export const googleProvider = new GoogleAuthProvider();
 export const currentFirebaseConfig = resolvedConfig;
 

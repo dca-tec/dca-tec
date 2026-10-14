@@ -32,7 +32,7 @@ export const DEFAULT_HERO_BANNERS: HeroBannerItem[] = [
     badge: "DCA TEC // PRESENÇA GLOBAL & EXPO DE TECNOLOGIA",
     title: "TECNOLOGIA QUE CONECTA PESSOAS E POSSIBILIDADES",
     subtitle: "Soluções integradas de inteligência artificial, biometria de última geração, ciberdefesa e infraestruturas tecnológicas sob medida.",
-    image: "/src/assets/images/dca_expo_stand_1791859526860.jpg",
+    image: "/assets/images/dca_expo_stand_1791859526860.jpg",
     tags: [
       "Biometria Avançada",
       "Inteligência Artificial",
@@ -57,7 +57,7 @@ export const DEFAULT_HERO_BANNERS: HeroBannerItem[] = [
     badge: "ECOSSISTEMA DCA TEC",
     title: "INNOVATION & TECHNOLOGY GROUP",
     subtitle: "Conectamos empresas, laboratórios científicos, engenharia de ponta e arquitetura disruptiva para construir o futuro das cidades e das indústrias.",
-    image: "/src/assets/images/dca_tech_hub_1791859552329.jpg",
+    image: "/assets/images/dca_tech_hub_1791859552329.jpg",
     tags: [
       "Engenharia & Aeroespacial",
       "Biofísica & Saúde",

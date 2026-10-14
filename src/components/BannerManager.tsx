@@ -20,10 +20,13 @@ import {
   ArrowUpRight, 
   X, 
   CheckCircle2, 
-  AlertCircle 
+  AlertCircle,
+  Upload,
+  Loader2
 } from "lucide-react";
 import { useHeroBanners, HeroBannerItem, HeroBannerCta } from "../lib/bannerConfig";
 import { useSiteVisibility } from "../lib/siteConfig";
+import { uploadBannerImage, OFFICIAL_DCA_IMAGE_PRESETS } from "../lib/imageUpload";
 
 export default function BannerManager() {
   const {
@@ -46,6 +49,50 @@ export default function BannerManager() {
   const [editingBanner, setEditingBanner] = useState<HeroBannerItem | null>(null);
   const [isCreating, setIsCreating] = useState(false);
   const [actionNotice, setActionNotice] = useState<string | null>(null);
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
+  const [uploadSuccess, setUploadSuccess] = useState<string | null>(null);
+  const [imageInputMethod, setImageInputMethod] = useState<"upload" | "gallery" | "url">("upload");
+
+  const processSelectedFile = async (file: File) => {
+    try {
+      setIsUploadingImage(true);
+      setUploadError(null);
+      setUploadSuccess(null);
+
+      const result = await uploadBannerImage(file);
+      setFormData((prev) => ({
+        ...prev,
+        mediaType: "image",
+        mediaUrl: result.url,
+      }));
+      setUploadSuccess(
+        result.source === "storage"
+          ? "Imagem enviada e conectada via Firebase Storage!"
+          : "Imagem carregada e otimizada com sucesso no Firebase!"
+      );
+    } catch (err: any) {
+      setUploadError(err.message || "Erro ao processar imagem.");
+    } finally {
+      setIsUploadingImage(false);
+    }
+  };
+
+  const handleFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      processSelectedFile(file);
+    }
+    e.target.value = "";
+  };
+
+  const handleDropFile = (e: React.DragEvent) => {
+    e.preventDefault();
+    const file = e.dataTransfer.files?.[0];
+    if (file) {
+      processSelectedFile(file);
+    }
+  };
 
   // Form states for creating/editing
   const [formData, setFormData] = useState<{
@@ -90,6 +137,9 @@ export default function BannerManager() {
   const openEditModal = (banner: HeroBannerItem) => {
     setEditingBanner(banner);
     setIsCreating(false);
+    setUploadError(null);
+    setUploadSuccess(null);
+    setImageInputMethod("upload");
     setFormData({
       badge: banner.badge || "",
       title: banner.title || "",
@@ -124,6 +174,9 @@ export default function BannerManager() {
   const openCreateModal = () => {
     setEditingBanner(null);
     setIsCreating(true);
+    setUploadError(null);
+    setUploadSuccess(null);
+    setImageInputMethod("upload");
     setFormData({
       badge: "DCA TEC // NOVO DESTAQUE",
       title: "NOVO BANNER PRINCIPAL",
@@ -697,13 +750,14 @@ export default function BannerManager() {
 
                 {/* Media Section: Image or Video */}
                 <div className="p-4 rounded-2xl bg-white/[0.02] border border-white/5 space-y-4">
-                  <div className="flex items-center justify-between">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                     <label className="text-xs font-bold uppercase tracking-wider text-white flex items-center gap-2">
                       <ImageIcon className="w-4 h-4 text-[#00ffe0]" />
                       Plano de Fundo (Mídia)
                     </label>
 
-                    <div className="flex items-center gap-2 bg-white/5 p-1 rounded-xl border border-white/10">
+                    {/* Media Type Switcher: Image vs Video */}
+                    <div className="flex items-center gap-2 bg-white/5 p-1 rounded-xl border border-white/10 self-start sm:self-auto">
                       <button
                         type="button"
                         onClick={() => setFormData({ ...formData, mediaType: "image" })}
@@ -729,41 +783,219 @@ export default function BannerManager() {
                     </div>
                   </div>
 
-                  <div>
-                    <label className="text-[11px] font-mono text-white/50 block mb-1">
-                      URL da {formData.mediaType === "image" ? "Imagem" : "Vídeo (MP4)"}
-                    </label>
-                    <input
-                      type="text"
-                      value={formData.mediaUrl}
-                      onChange={(e) => setFormData({ ...formData, mediaUrl: e.target.value })}
-                      placeholder={
-                        formData.mediaType === "image"
-                          ? "https://... ou /src/assets/images/..."
-                          : "https://...video.mp4"
-                      }
-                      className="w-full px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-white text-xs font-mono focus:outline-none focus:border-[#00ffe0]"
-                    />
-                  </div>
+                  {formData.mediaType === "image" ? (
+                    <div className="space-y-3">
+                      {/* Sub-selector for image source */}
+                      <div className="flex flex-wrap gap-2 border-b border-white/5 pb-3">
+                        <button
+                          type="button"
+                          onClick={() => setImageInputMethod("upload")}
+                          className={`px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all ${
+                            imageInputMethod === "upload"
+                              ? "bg-white/15 text-[#00ffe0] border border-[#00ffe0]/40"
+                              : "text-white/50 hover:text-white bg-white/5"
+                          }`}
+                        >
+                          <Upload className="w-3.5 h-3.5" />
+                          Upload do Computador
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setImageInputMethod("gallery")}
+                          className={`px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all ${
+                            imageInputMethod === "gallery"
+                              ? "bg-white/15 text-[#00ffe0] border border-[#00ffe0]/40"
+                              : "text-white/50 hover:text-white bg-white/5"
+                          }`}
+                        >
+                          <Sparkles className="w-3.5 h-3.5" />
+                          Galeria Oficial DCA TEC
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setImageInputMethod("url")}
+                          className={`px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all ${
+                            imageInputMethod === "url"
+                              ? "bg-white/15 text-[#00ffe0] border border-[#00ffe0]/40"
+                              : "text-white/50 hover:text-white bg-white/5"
+                          }`}
+                        >
+                          <ExternalLink className="w-3.5 h-3.5" />
+                          Colar Link / URL
+                        </button>
+                      </div>
+
+                      {/* 1. UPLOAD DIRECTLY FROM COMPUTER */}
+                      {imageInputMethod === "upload" && (
+                        <div
+                          onDragOver={(e) => e.preventDefault()}
+                          onDrop={handleDropFile}
+                          className="relative border-2 border-dashed border-white/15 hover:border-[#00ffe0]/50 rounded-2xl p-6 text-center bg-white/[0.01] hover:bg-white/[0.03] transition-all flex flex-col items-center justify-center cursor-pointer group"
+                        >
+                          <input
+                            type="file"
+                            accept="image/png, image/jpeg, image/jpg, image/webp"
+                            onChange={handleFileInputChange}
+                            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                            disabled={isUploadingImage}
+                          />
+
+                          {isUploadingImage ? (
+                            <div className="flex flex-col items-center py-4">
+                              <Loader2 className="w-8 h-8 text-[#00ffe0] animate-spin mb-2" />
+                              <span className="text-xs font-bold text-white uppercase tracking-wider">
+                                Processando e enviando imagem ao Firebase...
+                              </span>
+                              <span className="text-[10px] text-white/50 mt-1">
+                                Otimizando resolução e preparando para exibição
+                              </span>
+                            </div>
+                          ) : (
+                            <>
+                              <div className="w-12 h-12 rounded-2xl bg-[#00ffe0]/10 border border-[#00ffe0]/20 flex items-center justify-center text-[#00ffe0] mb-3 group-hover:scale-110 transition-transform">
+                                <Upload className="w-6 h-6" />
+                              </div>
+                              <span className="text-sm font-bold text-white block">
+                                Clique para selecionar do computador ou arraste aqui
+                              </span>
+                              <span className="text-[11px] text-white/40 block mt-1">
+                                Suporta PNG, JPG ou WEBP (salvo e sincronizado diretamente no Firebase)
+                              </span>
+                            </>
+                          )}
+                        </div>
+                      )}
+
+                      {/* 2. GALLERY OF OFFICIAL DCA PRESETS */}
+                      {imageInputMethod === "gallery" && (
+                        <div className="space-y-2">
+                          <span className="text-[11px] text-white/50 block">
+                            Clique em uma foto oficial da DCA TEC ou do Polo Industrial para aplicar ao banner:
+                          </span>
+                          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 max-h-48 overflow-y-auto pr-1">
+                            {OFFICIAL_DCA_IMAGE_PRESETS.map((preset, pIdx) => {
+                              const isSelected = formData.mediaUrl === preset.url;
+                              return (
+                                <button
+                                  key={pIdx}
+                                  type="button"
+                                  onClick={() => {
+                                    setFormData({ ...formData, mediaUrl: preset.url });
+                                    setUploadSuccess(`Imagem "${preset.name}" selecionada!`);
+                                    setUploadError(null);
+                                  }}
+                                  className={`relative rounded-xl overflow-hidden border p-1 text-left transition-all flex flex-col ${
+                                    isSelected
+                                      ? "border-[#00ffe0] ring-2 ring-[#00ffe0]/30 bg-white/10"
+                                      : "border-white/10 hover:border-white/30 bg-white/5"
+                                  }`}
+                                >
+                                  <div className="relative h-16 w-full rounded-lg overflow-hidden bg-black/60 mb-1.5">
+                                    <img
+                                      src={preset.url}
+                                      alt={preset.name}
+                                      className="w-full h-full object-cover"
+                                    />
+                                    {isSelected && (
+                                      <div className="absolute top-1 right-1 bg-[#00ffe0] text-black p-0.5 rounded-full">
+                                        <Check className="w-3 h-3 stroke-[3]" />
+                                      </div>
+                                    )}
+                                  </div>
+                                  <span className="text-[10px] font-bold text-white truncate block">
+                                    {preset.name}
+                                  </span>
+                                  <span className="text-[9px] text-[#00ffe0]/80 font-mono">
+                                    {preset.category}
+                                  </span>
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* 3. PASTE URL */}
+                      {imageInputMethod === "url" && (
+                        <div>
+                          <label className="text-[11px] font-mono text-white/50 block mb-1">
+                            URL externa da Imagem
+                          </label>
+                          <input
+                            type="text"
+                            value={formData.mediaUrl}
+                            onChange={(e) => {
+                              setFormData({ ...formData, mediaUrl: e.target.value });
+                              setUploadError(null);
+                            }}
+                            placeholder="https://exemplo.com/sua-imagem.jpg"
+                            className="w-full px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-white text-xs font-mono focus:outline-none focus:border-[#00ffe0]"
+                          />
+                        </div>
+                      )}
+
+                      {/* Upload status message */}
+                      {uploadSuccess && (
+                        <div className="p-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 text-xs flex items-center gap-2">
+                          <CheckCircle2 className="w-4 h-4 shrink-0" />
+                          <span>{uploadSuccess}</span>
+                        </div>
+                      )}
+                      {uploadError && (
+                        <div className="p-2.5 rounded-xl bg-red-500/10 border border-red-500/30 text-red-300 text-xs flex items-center gap-2">
+                          <AlertCircle className="w-4 h-4 shrink-0" />
+                          <span>{uploadError}</span>
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    /* Video section */
+                    <div>
+                      <label className="text-[11px] font-mono text-white/50 block mb-1">
+                        URL do Vídeo (MP4 com streaming direto)
+                      </label>
+                      <input
+                        type="text"
+                        value={formData.mediaUrl}
+                        onChange={(e) => setFormData({ ...formData, mediaUrl: e.target.value })}
+                        placeholder="https://...video.mp4"
+                        className="w-full px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-white text-xs font-mono focus:outline-none focus:border-[#00ffe0]"
+                      />
+                    </div>
+                  )}
 
                   {/* Thumbnail Live Preview */}
                   {formData.mediaUrl && (
-                    <div className="relative h-28 rounded-xl overflow-hidden border border-white/10 bg-black">
-                      {formData.mediaType === "image" ? (
-                        <img
-                          src={formData.mediaUrl}
-                          alt="Preview"
-                          className="w-full h-full object-cover"
-                          onError={(e) => {
-                            (e.target as HTMLElement).style.display = "none";
-                          }}
-                        />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center text-white/50 text-xs font-mono">
-                          <Video className="w-5 h-5 text-[#00ffe0] mr-2" />
-                          Vídeo configurado: {formData.mediaUrl.slice(0, 45)}...
-                        </div>
-                      )}
+                    <div className="pt-2">
+                      <div className="flex items-center justify-between mb-1.5">
+                        <span className="text-[10px] font-mono uppercase tracking-wider text-white/50">
+                          Prévia da Mídia Selecionada:
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => setFormData({ ...formData, mediaUrl: "" })}
+                          className="text-[10px] text-red-400 hover:text-red-300 font-mono"
+                        >
+                          Limpar Mídia
+                        </button>
+                      </div>
+                      <div className="relative h-32 rounded-xl overflow-hidden border border-white/10 bg-black">
+                        {formData.mediaType === "image" ? (
+                          <img
+                            src={formData.mediaUrl}
+                            alt="Preview"
+                            className="w-full h-full object-cover"
+                            onError={(e) => {
+                              (e.target as HTMLElement).style.display = "none";
+                            }}
+                          />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center text-white/50 text-xs font-mono">
+                            <Video className="w-5 h-5 text-[#00ffe0] mr-2" />
+                            Vídeo configurado: {formData.mediaUrl.slice(0, 45)}...
+                          </div>
+                        )}
+                      </div>
                     </div>
                   )}
                 </div>
