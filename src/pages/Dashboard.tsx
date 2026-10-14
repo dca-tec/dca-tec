@@ -332,6 +332,25 @@ export default function Dashboard() {
   useEffect(() => {
     if (!isAuthorizedAdmin) return;
 
+    // Check if user is authenticated with Firebase Auth
+    const isFirebaseAuthAdmin = Boolean(user && ADMIN_EMAILS.includes(user.email?.toLowerCase() || ""));
+
+    if (!isFirebaseAuthAdmin) {
+      // In master passcode session without Firebase Auth user, load cached data from localStorage
+      // to avoid unauthenticated queries that cause PERMISSION_DENIED and Firestore ca9 crashes
+      try {
+        const cachedLeads = localStorage.getItem("dca_cached_leads");
+        if (cachedLeads) setLeads(JSON.parse(cachedLeads));
+        const cachedClients = localStorage.getItem("dca_cached_clients");
+        if (cachedClients) setClients(JSON.parse(cachedClients));
+        const cachedBiddings = localStorage.getItem("dca_cached_biddings");
+        if (cachedBiddings) setBiddings(JSON.parse(cachedBiddings));
+        const cachedAcquisitions = localStorage.getItem("dca_cached_acquisitions");
+        if (cachedAcquisitions) setAcquisitions(JSON.parse(cachedAcquisitions));
+      } catch (e) {}
+      return;
+    }
+
     let unsubLeads = () => {};
     let unsubAcceptances = () => {};
     let unsubDocs = () => {};
@@ -343,16 +362,18 @@ export default function Dashboard() {
       unsubLeads = onSnapshot(qLeads, (snapshot) => {
         const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Lead));
         setLeads(data);
+        try { localStorage.setItem("dca_cached_leads", JSON.stringify(data)); } catch (e) {}
       }, (err) => {
-        console.error("Leads fetch error:", err);
+        console.warn("Leads fetch error:", err.message);
       });
 
       const qAcceptances = query(collection(db, "acceptances"), orderBy("acceptedAt", "desc"));
       unsubAcceptances = onSnapshot(qAcceptances, (snapshot) => {
         const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Acceptance));
         setClients(data);
+        try { localStorage.setItem("dca_cached_clients", JSON.stringify(data)); } catch (e) {}
       }, (err) => {
-        console.error("Acceptances fetch error:", err);
+        console.warn("Acceptances fetch error:", err.message);
       });
 
       const qDocs = query(collection(db, "documents"), orderBy("uploadedAt", "desc"));
@@ -360,15 +381,16 @@ export default function Dashboard() {
         const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as ClientDocument));
         setDocuments(data);
       }, (err) => {
-        console.error("Documents fetch error:", err);
+        console.warn("Documents fetch error:", err.message);
       });
 
       const qBiddings = query(collection(db, "biddings"), orderBy("createdAt", "desc"));
       unsubBiddings = onSnapshot(qBiddings, (snapshot) => {
         const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Bidding));
         setBiddings(data);
+        try { localStorage.setItem("dca_cached_biddings", JSON.stringify(data)); } catch (e) {}
       }, (err) => {
-        console.error("Biddings fetch error:", err);
+        console.warn("Biddings fetch error:", err.message);
       });
 
       const qAcquisitions = query(
@@ -379,24 +401,25 @@ export default function Dashboard() {
       unsubAcquisitions = onSnapshot(qAcquisitions, (snapshot) => {
         const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as AcquisitionProposal));
         setAcquisitions(data);
+        try { localStorage.setItem("dca_cached_acquisitions", JSON.stringify(data)); } catch (e) {}
       }, (err) => {
-        console.error("Acquisitions fetch error:", err);
+        console.warn("Acquisitions fetch error:", err.message);
       });
     } catch (err) {
-      console.error("Error setting up listeners:", err);
+      console.warn("Error setting up listeners:", err);
     }
 
     return () => {
-      unsubLeads();
-      unsubAcceptances();
-      unsubDocs();
-      unsubBiddings();
-      unsubAcquisitions();
+      try { unsubLeads(); } catch (e) {}
+      try { unsubAcceptances(); } catch (e) {}
+      try { unsubDocs(); } catch (e) {}
+      try { unsubBiddings(); } catch (e) {}
+      try { unsubAcquisitions(); } catch (e) {}
     };
   }, [isAuthorizedAdmin, user]);
 
   useEffect(() => {
-    if (!selectedClient) {
+    if (!selectedClient || !user) {
       setMessages([]);
       return;
     }
@@ -412,8 +435,10 @@ export default function Dashboard() {
       setMessages(data);
     }, (err) => handleFirestoreError(err, OperationType.LIST, "messages"));
 
-    return () => unsubMessages();
-  }, [selectedClient]);
+    return () => {
+      try { unsubMessages(); } catch (e) {}
+    };
+  }, [selectedClient, user]);
 
   const handleSendMessage = async () => {
     if (!newMessage.trim() || !selectedClient || !user) return;
@@ -1160,15 +1185,21 @@ export default function Dashboard() {
 
         <div className="mt-auto pt-8 border-t border-white/5">
           <div className="flex items-center gap-4 mb-6">
-            <img src={user.photoURL || ""} alt={user.displayName || ""} className="w-10 h-10 rounded-full border border-white/10" />
+            {user?.photoURL ? (
+              <img src={user.photoURL} alt={user.displayName || "Admin"} className="w-10 h-10 rounded-full border border-white/10" />
+            ) : (
+              <div className="w-10 h-10 rounded-full bg-[#00ffe0]/10 border border-[#00ffe0]/30 flex items-center justify-center text-[#00ffe0] font-black text-xs shrink-0">
+                DCA
+              </div>
+            )}
             <div className="overflow-hidden">
-              <p className="text-sm font-bold truncate">{user.displayName}</p>
-              <p className="text-[10px] text-white/40 truncate">{user.email}</p>
+              <p className="text-sm font-bold truncate">{user?.displayName || "Administrador DCA"}</p>
+              <p className="text-[10px] text-white/40 truncate">{user?.email || "Acesso Mestre Direto"}</p>
             </div>
           </div>
           <button 
             onClick={handleLogout}
-            className="w-full flex items-center gap-4 px-6 py-4 rounded-2xl text-red-400 hover:bg-red-400/10 transition-all"
+            className="w-full flex items-center gap-4 px-6 py-4 rounded-2xl text-red-400 hover:bg-red-400/10 transition-all cursor-pointer"
           >
             <LogOut className="w-5 h-5" />
             <span className="font-bold text-sm uppercase tracking-widest">Sair</span>
@@ -2012,9 +2043,9 @@ export default function Dashboard() {
                         </div>
                       ) : (
                         messages.map(msg => (
-                          <div key={msg.id} className={`flex flex-col ${msg.senderId === user.uid ? 'items-end' : 'items-start'}`}>
+                          <div key={msg.id} className={`flex flex-col ${user && msg.senderId === user.uid ? 'items-end' : 'items-start'}`}>
                             <div className={`max-w-[80%] p-4 rounded-2xl text-sm ${
-                              msg.senderId === user.uid 
+                              user && msg.senderId === user.uid 
                                 ? 'bg-[#00ffe0] text-black font-medium rounded-tr-none' 
                                 : 'bg-white/10 text-white rounded-tl-none'
                             }`}>

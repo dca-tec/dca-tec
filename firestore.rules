@@ -163,9 +163,8 @@ service cloud.firestore {
     }
 
     match /site_settings/{settingId} {
-      allow get: if isValidId(settingId);
-      allow list: if isAdmin();
-      allow write: if isAdmin() && isValidId(settingId);
+      allow read: if isValidId(settingId);
+      allow write: if isValidId(settingId);
     }
   }
 }
