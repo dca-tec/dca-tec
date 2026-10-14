@@ -67,9 +67,7 @@ export default function BannerManager() {
         mediaUrl: result.url,
       }));
       setUploadSuccess(
-        result.source === "storage"
-          ? "Imagem enviada e conectada via Firebase Storage!"
-          : "Imagem carregada e otimizada com sucesso no Firebase!"
+        `Imagem "${result.fileName}" (${result.fileSizeKb} KB) carregada com sucesso!`
       );
     } catch (err: any) {
       setUploadError(err.message || "Erro ao processar imagem.");

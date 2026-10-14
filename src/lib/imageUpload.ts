@@ -1,111 +1,131 @@
-import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
-import { storage } from "./firebase";
-
 export interface UploadResult {
   url: string;
-  source: "storage" | "data_url";
+  source: "data_url";
   fileName: string;
+  fileSizeKb: number;
 }
 
 /**
  * Compresses an image file using HTML5 Canvas to an optimal WebP/JPEG data URL.
- * Keeps resolution sharp (up to 1920x1080) while shrinking file size dramatically (<300KB).
+ * Keeps resolution crisp for widescreen hero banners (up to 1920x1080)
+ * while optimizing file size for instantaneous rendering and storage.
  */
 export async function compressImageToDataUrl(
   file: File,
   maxWidth = 1920,
   maxHeight = 1080,
-  quality = 0.85
+  quality = 0.82
 ): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onerror = () => reject(new Error("Erro ao ler o arquivo de imagem selecionado."));
-    reader.onload = (e) => {
-      const img = new Image();
-      img.onerror = () => reject(new Error("Arquivo de imagem corrompido ou formato inválido."));
-      img.onload = () => {
-        let width = img.width;
-        let height = img.height;
+  return new Promise((resolve) => {
+    // Safety fallback: if anything hangs or stalls, return direct data URL within 2.5 seconds
+    const safetyTimer = setTimeout(() => {
+      try {
+        const fallbackReader = new FileReader();
+        fallbackReader.onload = () => resolve(fallbackReader.result as string || "");
+        fallbackReader.onerror = () => resolve("");
+        fallbackReader.readAsDataURL(file);
+      } catch {
+        resolve("");
+      }
+    }, 2500);
 
-        // Calculate aspect-ratio scale
-        if (width > maxWidth) {
-          height = Math.round((height * maxWidth) / width);
-          width = maxWidth;
-        }
-        if (height > maxHeight) {
-          width = Math.round((width * maxHeight) / height);
-          height = maxHeight;
-        }
-
-        const canvas = document.createElement("canvas");
-        canvas.width = width;
-        canvas.height = height;
-        const ctx = canvas.getContext("2d");
-        if (!ctx) {
-          // Fallback to raw data url if canvas context fails
-          return resolve(e.target?.result as string);
-        }
-
-        ctx.drawImage(img, 0, 0, width, height);
-
-        // Try webp first, fallback to jpeg
-        try {
-          const webpData = canvas.toDataURL("image/webp", quality);
-          if (webpData.startsWith("data:image/webp")) {
-            return resolve(webpData);
-          }
-        } catch {
-          // ignore and fallback
-        }
-
-        const jpegData = canvas.toDataURL("image/jpeg", quality);
-        resolve(jpegData);
+    try {
+      const reader = new FileReader();
+      reader.onerror = () => {
+        clearTimeout(safetyTimer);
+        resolve("");
       };
-      img.src = e.target?.result as string;
-    };
-    reader.readAsDataURL(file);
+      reader.onload = (e) => {
+        const rawDataUrl = e.target?.result as string;
+        if (!rawDataUrl) {
+          clearTimeout(safetyTimer);
+          resolve("");
+          return;
+        }
+
+        const img = new Image();
+        img.onerror = () => {
+          clearTimeout(safetyTimer);
+          // If image decoding in canvas fails, resolve raw data URL directly
+          resolve(rawDataUrl);
+        };
+        img.onload = () => {
+          clearTimeout(safetyTimer);
+          try {
+            let width = img.width || 1200;
+            let height = img.height || 800;
+
+            // Calculate proportional scale
+            if (width > maxWidth) {
+              height = Math.round((height * maxWidth) / width);
+              width = maxWidth;
+            }
+            if (height > maxHeight) {
+              width = Math.round((width * maxHeight) / height);
+              height = maxHeight;
+            }
+
+            const canvas = document.createElement("canvas");
+            canvas.width = width;
+            canvas.height = height;
+            const ctx = canvas.getContext("2d");
+            if (!ctx) {
+              resolve(rawDataUrl);
+              return;
+            }
+
+            // Draw and render
+            ctx.drawImage(img, 0, 0, width, height);
+
+            // Attempt WebP first for superior compression, fallback to JPEG
+            try {
+              const webpData = canvas.toDataURL("image/webp", quality);
+              if (webpData && webpData.startsWith("data:image/webp") && webpData.length > 100) {
+                resolve(webpData);
+                return;
+              }
+            } catch {
+              // fallback to jpeg
+            }
+
+            const jpegData = canvas.toDataURL("image/jpeg", quality);
+            resolve(jpegData || rawDataUrl);
+          } catch {
+            resolve(rawDataUrl);
+          }
+        };
+        img.src = rawDataUrl;
+      };
+      reader.readAsDataURL(file);
+    } catch {
+      clearTimeout(safetyTimer);
+      resolve("");
+    }
   });
 }
 
 /**
- * Uploads an image file:
- * 1. Attempts to upload to Firebase Storage bucket.
- * 2. If Firebase Storage bucket isn't enabled or has permission/CORS restrictions,
- *    it transparently falls back to an optimized high-resolution web Data URL,
- *    storing the image directly in Firestore without any broken links or external hosting needed.
+ * Uploads/processes an image file instantaneously from the user's computer:
+ * Converts and optimizes it into a high-resolution, web-ready data URL
+ * that is saved directly into the Firebase database without any external hosting.
  */
 export async function uploadBannerImage(file: File): Promise<UploadResult> {
   // Validate file type
   if (!file.type.startsWith("image/")) {
-    throw new Error("Por favor, selecione um arquivo de imagem válido (PNG, JPG, WEBP, GIF).");
+    throw new Error("Por favor, selecione um arquivo de imagem válido (PNG, JPG, JPEG ou WEBP).");
   }
 
-  // 1. Try Firebase Storage upload
-  try {
-    const cleanName = file.name.replace(/[^a-zA-Z0-9._-]/g, "_");
-    const storagePath = `banners/${Date.now()}_${cleanName}`;
-    const storageRef = ref(storage, storagePath);
-
-    const snapshot = await uploadBytes(storageRef, file, {
-      contentType: file.type,
-    });
-    const downloadUrl = await getDownloadURL(snapshot.ref);
-
-    return {
-      url: downloadUrl,
-      source: "storage",
-      fileName: file.name,
-    };
-  } catch (err: any) {
-    console.info("Firebase Storage upload not available or restricted, falling back to optimized inline format:", err?.message || err);
-  }
-
-  // 2. Fallback: Compress and convert to web-optimized Data URL
+  // Optimize and process directly into web-ready format instantly
   const dataUrl = await compressImageToDataUrl(file);
+  if (!dataUrl) {
+    throw new Error("Não foi possível processar o arquivo de imagem selecionado.");
+  }
+
   return {
     url: dataUrl,
     source: "data_url",
     fileName: file.name,
+    fileSizeKb: Math.round(file.size / 1024),
   };
 }
 
