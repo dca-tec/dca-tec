@@ -45,8 +45,14 @@ export default function App() {
           <Route path="/restituicao-tributaria" element={<TaxRecovery />} />
           <Route path="/projects/:slug" element={<ProjectDetail />} />
           <Route path="/admin/dashboard" element={<Dashboard />} />
+          <Route path="/admin" element={<Dashboard />} />
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/painel" element={<Dashboard />} />
           <Route path="/cliente/dashboard" element={<ClientDashboard />} />
+          <Route path="/client/dashboard" element={<ClientDashboard />} />
           <Route path="/login" element={<Login />} />
+          {/* Catch-all fallback */}
+          <Route path="*" element={<Home />} />
         </Routes>
       </Suspense>
     </Router>

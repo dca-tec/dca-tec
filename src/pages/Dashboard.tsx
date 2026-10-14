@@ -160,7 +160,21 @@ interface AcquisitionProposal {
 export default function Dashboard() {
   console.log("Dashboard Component Rendering...");
   const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
+  
+  // Fast check if user is already authenticated via session or local storage
+  const getSavedSessionAdmin = () => {
+    try {
+      return (
+        sessionStorage.getItem("dca_admin_session") === "true" ||
+        localStorage.getItem("dca_admin_session") === "true"
+      );
+    } catch {
+      return false;
+    }
+  };
+
+  const [isSessionAdmin, setIsSessionAdmin] = useState(getSavedSessionAdmin);
+  const [loading, setLoading] = useState(() => !getSavedSessionAdmin());
   const [leads, setLeads] = useState<Lead[]>([]);
   const [clients, setClients] = useState<Acceptance[]>([]);
   const [documents, setDocuments] = useState<ClientDocument[]>([]);
@@ -280,27 +294,32 @@ export default function Dashboard() {
   ];
   const ADMIN_EMAIL = ADMIN_EMAILS[0];
 
-  const [isSessionAdmin, setIsSessionAdmin] = useState(() => {
-    try {
-      return sessionStorage.getItem("dca_admin_session") === "true";
-    } catch {
-      return false;
-    }
-  });
   const [directMasterKey, setDirectMasterKey] = useState("");
   const [directKeyError, setDirectKeyError] = useState("");
 
   const isAuthorizedAdmin = isSessionAdmin || Boolean(user && ADMIN_EMAILS.includes(user.email?.toLowerCase() || ""));
 
   useEffect(() => {
+    // If already validated session admin, no need to wait on auth
+    if (isSessionAdmin) {
+      setLoading(false);
+    }
+
     // Safety timeout to prevent stuck loading
     const timer = setTimeout(() => {
       setLoading(false);
-    }, 5000);
+    }, 1000);
 
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       console.log("Auth State Changed. User:", currentUser?.email);
       setUser(currentUser);
+      if (currentUser && ADMIN_EMAILS.includes(currentUser.email?.toLowerCase() || "")) {
+        try {
+          sessionStorage.setItem("dca_admin_session", "true");
+          localStorage.setItem("dca_admin_session", "true");
+        } catch (e) {}
+        setIsSessionAdmin(true);
+      }
       setLoading(false);
       clearTimeout(timer);
     });
@@ -308,7 +327,7 @@ export default function Dashboard() {
       unsubscribe();
       clearTimeout(timer);
     };
-  }, []);
+  }, [isSessionAdmin]);
 
   useEffect(() => {
     if (!isAuthorizedAdmin) return;
@@ -374,7 +393,7 @@ export default function Dashboard() {
       unsubBiddings();
       unsubAcquisitions();
     };
-  }, [user]);
+  }, [isAuthorizedAdmin, user]);
 
   useEffect(() => {
     if (!selectedClient) {
@@ -720,6 +739,7 @@ export default function Dashboard() {
   const handleLogout = async () => {
     try {
       sessionStorage.removeItem("dca_admin_session");
+      localStorage.removeItem("dca_admin_session");
       setIsSessionAdmin(false);
       await signOut(auth);
     } catch (e) {
@@ -872,10 +892,17 @@ export default function Dashboard() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-black flex items-center justify-center">
-        <div className="flex flex-col items-center gap-4">
+      <div className="min-h-screen bg-black flex items-center justify-center p-6">
+        <div className="flex flex-col items-center gap-4 text-center max-w-sm">
           <div className="w-12 h-12 border-4 border-[#00ffe0] border-t-transparent rounded-full animate-spin" />
-          <p className="text-[#00ffe0]/40 text-[10px] uppercase tracking-widest font-bold">Verificando Credenciais...</p>
+          <p className="text-[#00ffe0]/70 text-xs uppercase tracking-widest font-bold">Verificando Credenciais...</p>
+          <button
+            type="button"
+            onClick={() => setLoading(false)}
+            className="mt-2 text-xs text-white/50 hover:text-[#00ffe0] underline transition-colors"
+          >
+            Acessar com Senha Mestra ou Conta Google
+          </button>
         </div>
       </div>
     );
@@ -894,7 +921,10 @@ export default function Dashboard() {
       ].filter(Boolean);
 
       if (validPasscodes.includes(directMasterKey.trim())) {
-        sessionStorage.setItem("dca_admin_session", "true");
+        try {
+          sessionStorage.setItem("dca_admin_session", "true");
+          localStorage.setItem("dca_admin_session", "true");
+        } catch (e) {}
         setIsSessionAdmin(true);
         setDirectKeyError("");
       } else {

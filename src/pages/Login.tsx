@@ -27,7 +27,15 @@ export default function Login() {
 
   useEffect(() => {
     // Check if already authenticated via session
-    if (sessionStorage.getItem("dca_admin_session") === "true") {
+    const isSavedAdmin = (() => {
+      try {
+        return sessionStorage.getItem("dca_admin_session") === "true" || localStorage.getItem("dca_admin_session") === "true";
+      } catch {
+        return false;
+      }
+    })();
+
+    if (isSavedAdmin) {
       navigate("/admin/dashboard");
       return;
     }
@@ -37,7 +45,10 @@ export default function Login() {
         setLoading(true);
         // Check if admin
         if (user.email?.toLowerCase() === "dca.tec.br@gmail.com") {
-          sessionStorage.setItem("dca_admin_session", "true");
+          try {
+            sessionStorage.setItem("dca_admin_session", "true");
+            localStorage.setItem("dca_admin_session", "true");
+          } catch (e) {}
           navigate("/admin/dashboard");
           return;
         }
@@ -105,10 +116,13 @@ export default function Login() {
 
     if (validPasscodes.includes(masterPassword.trim())) {
       setSuccessMsg("Credenciais verificadas! Redirecionando para o Painel Administrativo...");
-      sessionStorage.setItem("dca_admin_session", "true");
+      try {
+        sessionStorage.setItem("dca_admin_session", "true");
+        localStorage.setItem("dca_admin_session", "true");
+      } catch (e) {}
       setTimeout(() => {
         navigate("/admin/dashboard");
-      }, 500);
+      }, 300);
     } else {
       setError("Senha mestra administrativa incorreta.");
     }
